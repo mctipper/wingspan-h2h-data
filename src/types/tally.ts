@@ -1,4 +1,4 @@
-import type { Player } from "./domain";
+import type { Player } from "@/types/domain";
 
 export interface Streak {
   player: Player | null;

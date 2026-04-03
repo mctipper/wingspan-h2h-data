@@ -1,9 +1,9 @@
-import "./styles/main.css";
-import { results, tally } from "./data/dataLoader";
-import { renderSummaryBar } from "./components/summaryBar";
-import { renderGamesTable } from "./components/gamesTable";
-import { renderRunningTallyChart } from "./components/charts/runningTallyChart";
-import { renderMarginChart } from "./components/charts/marginChart";
+import "@/styles/main.css";
+import { results, tally } from "@/data/dataLoader";
+import { renderSummaryBar } from "@/components/summaryBar";
+import { renderGamesTable } from "@/components/gamesTable";
+import { renderRunningTallyChart } from "@/components/charts/runningTallyChart";
+import { renderMarginChart } from "@/components/charts/marginChart";
 
 const summaryBarEl = document.getElementById("summary-bar");
 const gamesTableEl = document.getElementById("games-table");

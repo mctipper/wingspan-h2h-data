@@ -8,8 +8,8 @@ import {
   Filler,
   Tooltip,
 } from "chart.js";
-import type { Tally } from "../../types/tally";
-import { COLOURS } from "../../design";
+import type { Tally } from "@/types/tally";
+import { COLOURS } from "@/design";
 
 Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Filler, Tooltip);
 

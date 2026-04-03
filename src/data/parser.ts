@@ -1,6 +1,6 @@
-import type { RawGame, RawGameData } from "../types/raw";
-import type { CategoryScore, GameResult, Player } from "../types/domain";
-import type { CategoryStat, DrawSummary, RunningEntry, Streak, Tally } from "../types/tally";
+import type { RawGame, RawGameData } from "@/types/raw";
+import type { CategoryScore, GameResult, Player } from "@/types/domain";
+import type { CategoryStat, DrawSummary, RunningEntry, Streak, Tally } from "@/types/tally";
 
 export function parseGame(raw: RawGame): GameResult {
   const { hubby, wifey } = raw.players;

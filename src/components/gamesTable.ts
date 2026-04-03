@@ -1,6 +1,6 @@
-import type { GameResult } from "../types/domain";
-import type { RunningEntry } from "../types/tally";
-import { SPECIAL_CATEGORY_COLOUR } from "../design";
+import type { GameResult } from "@/types/domain";
+import type { RunningEntry } from "@/types/tally";
+import { SPECIAL_CATEGORY_COLOUR } from "@/design";
 
 export function renderGamesTable(
   results: GameResult[],

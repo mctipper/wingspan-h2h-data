@@ -1,4 +1,4 @@
-import type { Tally } from "../types/tally";
+import type { Tally } from "@/types/tally";
 
 function fmt2(n: number): string {
   return n.toFixed(2);
