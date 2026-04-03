@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+.DS_Store
+admin/dist/
+
+# keep that ai guff out of here
+.claude/
+CLAUDE.md

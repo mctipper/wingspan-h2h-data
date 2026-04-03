@@ -1,0 +1,412 @@
+:root {
+  --colour-wifey: #4a90d9;
+  --colour-hubby: #e07b54;
+  --colour-draw: #888;
+  --bg-primary: #1a1a2e;
+  --bg-card: #16213e;
+  --border-colour: #2a2a4a;
+  --text-primary: #e8e8f0;
+  --text-secondary: #9999bb;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+  --row-wifey: rgba(74, 144, 217, 0.12);
+  --row-hubby: rgba(224, 123, 84, 0.12);
+  --row-tiebreaker-wifey: rgba(74, 144, 217, 0.06);
+  --row-tiebreaker-hubby: rgba(224, 123, 84, 0.06);
+  --row-draw: rgba(136, 136, 136, 0.08);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
+
+header {
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid var(--border-colour);
+}
+
+header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+}
+
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── Summary Bar ─────────────────────────────────────────── */
+
+#summary-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.summary-section-gap {
+  height: 0.65rem;
+}
+
+.summary-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.summary-row__label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  align-self: center;
+  padding: 0 0.25rem;
+  opacity: 0.6;
+  flex-shrink: 0;
+  width: 1rem;
+}
+
+/* Current row — larger cards, equal width */
+.summary-row--current {
+  flex-wrap: nowrap;
+}
+
+.summary-row--current .stat-card {
+  flex: 1 1 0;
+  padding: 1rem 1.5rem;
+}
+
+.summary-row--current .stat-card__label {
+  font-size: 0.75rem;
+}
+
+.summary-row--current .stat-card__value {
+  font-size: 2.25rem;
+}
+
+/* Paired rows wrapper — single spanning label beside two rows */
+.summary-paired {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.summary-paired__label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  align-self: center;
+  padding: 0 0.25rem;
+  opacity: 0.6;
+  flex-shrink: 0;
+  width: 1rem;
+}
+
+.summary-paired__rows {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+/* Records rows — no label column, sits inside .summary-paired */
+.summary-row--records {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+/* Category rows — stretch cards to fill line, sits inside .summary-paired */
+.summary-row--categories {
+  flex-wrap: nowrap;
+}
+
+.summary-row--categories .stat-card {
+  flex: 1 1 0;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-colour);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.stat-card__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-card__label--italic {
+  font-style: italic;
+}
+
+.stat-card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-card--wifey .stat-card__value {
+  color: var(--colour-wifey);
+}
+
+.stat-card--hubby .stat-card__value {
+  color: var(--colour-hubby);
+}
+
+.stat-card--neutral .stat-card__value {
+  color: var(--text-primary);
+}
+
+.stat-card__sub {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.stat-card__sub2 {
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+  line-height: 1.2;
+  opacity: 0.75;
+}
+
+.stat-card__value--best::after {
+  content: "*";
+  font-size: 0.65em;
+  vertical-align: super;
+  opacity: 0.8;
+}
+
+/* ── Charts Column ───────────────────────────────────────── */
+
+#charts-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-colour);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chart-card--full {
+  width: 100%;
+}
+
+.chart-card h2 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+}
+
+.chart-container--tall {
+  height: 416px;
+}
+
+/* ── Games Table ─────────────────────────────────────────── */
+
+#games-table {
+  background: var(--bg-card);
+  border: 1px solid var(--border-colour);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+
+#games-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+#games-table thead {
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+}
+
+#games-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-colour);
+  white-space: nowrap;
+}
+
+#games-table th:not(:first-child) {
+  text-align: right;
+}
+
+#games-table td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border-colour);
+  color: var(--text-primary);
+}
+
+#games-table td:not(:first-child) {
+  text-align: right;
+}
+
+#games-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.winner--wifey {
+  color: var(--colour-wifey);
+  font-weight: 600;
+}
+
+.winner--hubby {
+  color: var(--colour-hubby);
+  font-weight: 600;
+}
+
+.winner--draw {
+  color: var(--colour-draw);
+}
+
+#games-table tbody tr.row--wifey           { background: var(--row-wifey); }
+#games-table tbody tr.row--hubby           { background: var(--row-hubby); }
+#games-table tbody tr.row--tiebreaker-wifey { background: var(--row-tiebreaker-wifey); }
+#games-table tbody tr.row--tiebreaker-hubby { background: var(--row-tiebreaker-hubby); }
+#games-table tbody tr.row--draw            { background: var(--row-draw); }
+
+#games-table tbody tr.row--wifey:hover            { background: rgba(74, 144, 217, 0.2); }
+#games-table tbody tr.row--hubby:hover            { background: rgba(224, 123, 84, 0.2); }
+#games-table tbody tr.row--tiebreaker-wifey:hover { background: rgba(74, 144, 217, 0.12); }
+#games-table tbody tr.row--tiebreaker-hubby:hover { background: rgba(224, 123, 84, 0.12); }
+#games-table tbody tr.row--draw:hover             { background: rgba(136, 136, 136, 0.14); }
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+/* Transpose: when summary bar can't fit full width, flip layout */
+@media (max-width: 900px) {
+  /* Current row stacks its cards vertically */
+  .summary-row--current {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .summary-row--current .stat-card {
+    width: 100%;
+  }
+
+  /* Row label (used on Current row) goes horizontal above */
+  .summary-row__label {
+    writing-mode: horizontal-tb;
+    transform: none;
+    width: auto;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.25rem 0;
+    align-self: flex-start;
+  }
+
+  /* Paired wrapper: label on top, then two-column grid of the row pair */
+  .summary-paired {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .summary-paired__label {
+    writing-mode: horizontal-tb;
+    transform: none;
+    width: auto;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.25rem 0;
+    align-self: flex-start;
+  }
+
+  /* The two rows become a 2-column grid: wifey left, hubby right, cards aligned per-metric */
+  .summary-paired__rows {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+
+  /* Each records row becomes a single column of cards */
+  .summary-row--records {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  /* Each category row becomes a single column of cards */
+  .summary-row--categories {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  main {
+    padding: 1rem;
+  }
+
+  header {
+    padding: 1rem;
+  }
+}
