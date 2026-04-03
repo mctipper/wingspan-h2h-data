@@ -4,8 +4,6 @@ services:
     command: npm run dev
     ports:
       - "5173:5173"
-    volumes:
-      - ./src/assets:/app/src/assets
     restart: unless-stopped
 
   admin:
@@ -13,6 +11,4 @@ services:
     command: npm run dev:admin
     ports:
       - "5174:5174"
-    volumes:
-      - ./src/assets:/app/src/assets
     restart: unless-stopped
