@@ -147,11 +147,7 @@ header nav a.active {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-secondary);
-}
-
-.category-rows-header span:nth-child(2),
-.category-rows-header span:nth-child(3) {
-  text-align: right;
+  text-align: left;
 }
 
 /* ── Form summary row ────────────────────────────────────── */
