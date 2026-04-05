@@ -7,7 +7,7 @@ export const VALID_CATEGORIES = [
   "Tucked",
   "Nectar",
   "Duet",
-  "HummingBirds",
+  "Hummingbirds",
 ] as const;
 
 export type ValidCategory = (typeof VALID_CATEGORIES)[number];

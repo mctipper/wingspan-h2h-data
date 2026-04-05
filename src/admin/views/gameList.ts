@@ -71,7 +71,7 @@ export function renderGameList(el: HTMLElement, games: RawGame[], onDelete: () =
                 <th>Hubby</th>
                 <th title="Nectar">N</th>
                 <th title="Duet">D</th>
-                <th title="HummingBirds">H</th>
+                <th title="Hummingbirds">H</th>
                 <th style="text-align:center">Actions</th>
               </tr>
             </thead>

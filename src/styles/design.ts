@@ -31,11 +31,11 @@ export const COLOURS = {
   tooltipBorder: "#2a2a4a",
 } as const;
 
-export const SPECIAL_CATEGORIES = ["Nectar", "Duet", "HummingBirds"] as const;
+export const SPECIAL_CATEGORIES = ["Nectar", "Duet", "Hummingbirds"] as const;
 export type SpecialCategory = (typeof SPECIAL_CATEGORIES)[number];
 
 export const SPECIAL_CATEGORY_COLOUR: Record<SpecialCategory, string> = {
   Nectar: COLOURS.nectar,
   Duet: COLOURS.duet,
-  HummingBirds: COLOURS.hummingbirds,
+  Hummingbirds: COLOURS.hummingbirds,
 };

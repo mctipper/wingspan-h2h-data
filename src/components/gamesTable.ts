@@ -78,7 +78,7 @@ export function renderGamesTable(
           <td>${runMargin}</td>
           <td>${specialTick("Nectar")}</td>
           <td>${specialTick("Duet")}</td>
-          <td>${specialTick("HummingBirds")}</td>
+          <td>${specialTick("Hummingbirds")}</td>
         </tr>`;
     })
     .join("");
