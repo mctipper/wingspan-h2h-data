@@ -41,23 +41,40 @@ export function renderAnalysisView(
   const nextBtn = nav?.next
     ? `<a href="${nav.next}" class="analysis-nav-btn" title="Next game">&#8250;</a>`
     : `<span class="analysis-nav-btn analysis-nav-btn--disabled">&#8250;</span>`;
+  const totalWinnerClass = 
+    winner === "draw" ? "winner--draw" : winner === "wifey" ? "winner--wifey" : "winner--hubby";
+  const totalWinnerRowClass = 
+    winner === "draw" ? "row--draw" : winner === "wifey" ? "row--wifey" : "row--hubby";
+  const totalWinnerText = 
+    winner === "draw" ? "Draw" : winner === "wifey" ? "Wifey" : "Hubby";
 
   const tableRows = categories
     .map((c) => {
       const catWinnerClass =
         c.winner === "draw" ? "winner--draw" : c.winner === "wifey" ? "winner--wifey" : "winner--hubby";
+      const catWinnerRowClass = 
+        c.winner === "draw" ? "row--draw" : c.winner === "wifey" ? "row--wifey" : "row--hubby";
       const catWinnerText =
         c.winner === "draw" ? "Draw" : c.winner === "wifey" ? "Wifey" : "Hubby";
       return `
-        <tr>
+        <tr class=${catWinnerRowClass}>
           <td>${c.category}</td>
-          <td class="col-right col-hubby">${c.hubby}</td>
           <td class="col-right col-wifey">${c.wifey}</td>
+          <td class="col-right col-hubby">${c.hubby}</td>
           <td class="col-right ${catWinnerClass}">${catWinnerText}</td>
           <td class="col-right">${c.margin}</td>
         </tr>`;
     })
-    .join("");
+    .join("") +
+    // totals
+    `<tr class=table-row--total ${totalWinnerRowClass}>
+        <td><strong><i>TOTAL</i></strong></td>
+        <td class="col-right col-wifey">${totalWifey}</td>
+        <td class="col-right col-hubby">${totalHubby}</td>
+        <td class="col-right ${totalWinnerClass}">${totalWinnerText}</td>
+        <td class="col-right">${Math.abs(margin)}</td>
+      </tr>`    
+    ;
 
   el.innerHTML = `
     <div class="analysis-header">
@@ -67,14 +84,14 @@ export function renderAnalysisView(
         ${nextBtn}
       </div>
       <div class="analysis-result">
-        <span class="${winnerClass}">${winnerText}</span>
-        ${tiebreaker ? `<span class="analysis-tiebreaker">(tiebreaker)</span>` : ""}
-        ${winner !== "draw" ? `<span class="analysis-margin">by ${marginText}</span>` : ""}
+      <span class="${winnerClass}">${winnerText}</span>
+      ${tiebreaker ? `<span class="analysis-tiebreaker">(tiebreaker)</span>` : ""}
+      ${winner !== "draw" ? `<span class="analysis-margin">by ${marginText}</span>` : ""}
       </div>
       <div class="analysis-totals">
-        <span class="col-wifey">Wifey ${totalWifey}</span>
+        <span class="col-wifey">Wifey </span><span>${totalWifey}</span>
         <span class="analysis-totals-sep">·</span>
-        <span class="col-hubby">Hubby ${totalHubby}</span>
+        <span class="col-hubby">Hubby </span><span>${totalHubby}</span>
       </div>
     </div>
 
@@ -87,8 +104,8 @@ export function renderAnalysisView(
         <thead>
           <tr>
             <th>Category</th>
-            <th class="col-right col-hubby">Hubby</th>
             <th class="col-right col-wifey">Wifey</th>
+            <th class="col-right col-hubby">Hubby</th>
             <th class="col-right">Winner</th>
             <th class="col-right">Margin</th>
           </tr>

@@ -331,17 +331,22 @@ main {
   color: var(--colour-draw);
 }
 
-#games-table tbody tr.row--wifey           { background: var(--row-wifey); }
-#games-table tbody tr.row--hubby           { background: var(--row-hubby); }
-#games-table tbody tr.row--tiebreaker-wifey { background: var(--row-tiebreaker-wifey); }
-#games-table tbody tr.row--tiebreaker-hubby { background: var(--row-tiebreaker-hubby); }
-#games-table tbody tr.row--draw            { background: var(--row-draw); }
+tr.row--wifey           { background: var(--row-wifey); }
+tr.row--hubby           { background: var(--row-hubby); }
+tr.row--tiebreaker-wifey { background: var(--row-tiebreaker-wifey); }
+tr.row--tiebreaker-hubby { background: var(--row-tiebreaker-hubby); }
+tr.row--draw            { background: var(--row-draw); }
+tr.row--wifey:hover            { background: rgba(74, 144, 217, 0.2); }
+tr.row--hubby:hover            { background: rgba(224, 123, 84, 0.2); }
+tr.row--tiebreaker-wifey:hover { background: rgba(74, 144, 217, 0.12); }
+tr.row--tiebreaker-hubby:hover { background: rgba(224, 123, 84, 0.12); }
+tr.row--draw:hover             { background: rgba(136, 136, 136, 0.14); }
 
-#games-table tbody tr.row--wifey:hover            { background: rgba(74, 144, 217, 0.2); }
-#games-table tbody tr.row--hubby:hover            { background: rgba(224, 123, 84, 0.2); }
-#games-table tbody tr.row--tiebreaker-wifey:hover { background: rgba(74, 144, 217, 0.12); }
-#games-table tbody tr.row--tiebreaker-hubby:hover { background: rgba(224, 123, 84, 0.12); }
-#games-table tbody tr.row--draw:hover             { background: rgba(136, 136, 136, 0.14); }
+.table-row--total td {
+  border-top: 2px solid var(--text-secondary); 
+  padding-top: 1rem; 
+  margin-top: 4px;
+}
 
 /* ── Analysis page ───────────────────────────────────────── */
 
@@ -458,6 +463,9 @@ main {
   border-top: 1px solid var(--border-colour);
   background: var(--bg-primary);
 }
+
+.col-hubby { color: var(--colour-hubby); }
+.col-wifey { color: var(--colour-wifey); }
 
 .analysis-table .col-right { text-align: right; }
 .analysis-table .col-hubby { color: var(--colour-hubby); }
