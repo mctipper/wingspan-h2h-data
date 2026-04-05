@@ -169,6 +169,7 @@ main {
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+  min-height: 85px;
 }
 
 .stat-card__label {
