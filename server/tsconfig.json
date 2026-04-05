@@ -8,13 +8,11 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "lib": ["ES2020", "DOM"],
-    "types": ["vite/client"],
-    "baseUrl": ".",
+    "lib": ["ES2020"],
+    "baseUrl": "..",
     "paths": {
-      "@admin/*": ["src/admin/*"],
       "@/*": ["src/*"]
     }
   },
-  "include": ["src"]
+  "include": [".", "../src"]
 }

@@ -342,6 +342,167 @@ main {
 #games-table tbody tr.row--tiebreaker-hubby:hover { background: rgba(224, 123, 84, 0.12); }
 #games-table tbody tr.row--draw:hover             { background: rgba(136, 136, 136, 0.14); }
 
+/* ── Analysis page ───────────────────────────────────────── */
+
+.back-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.back-link:hover { color: var(--text-primary); }
+
+#not-found {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  padding: 2rem 0;
+}
+
+.analysis-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border-colour);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.analysis-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.analysis-result {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.analysis-margin,
+.analysis-tiebreaker {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.analysis-totals {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.analysis-totals-sep { opacity: 0.4; }
+
+.analysis-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.analysis-chart-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-colour);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+}
+
+.analysis-table-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-colour);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+
+.analysis-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.analysis-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-colour);
+  white-space: nowrap;
+  background: var(--bg-primary);
+}
+
+.analysis-table td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border-colour);
+  color: var(--text-primary);
+}
+
+.analysis-table tbody tr:last-child td { border-bottom: none; }
+
+.analysis-table tfoot td {
+  border-top: 1px solid var(--border-colour);
+  background: var(--bg-primary);
+}
+
+.analysis-table .col-right { text-align: right; }
+.analysis-table .col-hubby { color: var(--colour-hubby); }
+.analysis-table .col-wifey { color: var(--colour-wifey); }
+
+/* ── Analysis nav (game ‹ › navigation) ──────────────────── */
+
+.analysis-game-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.analysis-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: calc(var(--radius) / 2);
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-colour);
+  transition: color 0.15s, border-color 0.15s;
+  cursor: pointer;
+  user-select: none;
+}
+
+.analysis-nav-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+.analysis-nav-btn--disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+
+/* ── Header admin link ───────────────────────────────────── */
+
+.admin-link {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  opacity: 0.6;
+}
+
+.admin-link:hover { opacity: 1; }
+
 /* ── Responsive ──────────────────────────────────────────── */
 
 /* Transpose: when summary bar can't fit full width, flip layout */
@@ -399,6 +560,11 @@ main {
   .summary-row--categories {
     flex-direction: column;
   }
+}
+
+@media (max-width: 800px) {
+  .analysis-body { grid-template-columns: 1fr; }
+  .analysis-chart-wrap { max-width: 100%; }
 }
 
 @media (max-width: 600px) {

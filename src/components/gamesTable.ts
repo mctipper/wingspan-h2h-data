@@ -1,6 +1,6 @@
 import type { GameResult } from "@/types/domain";
 import type { RunningEntry } from "@/types/tally";
-import { SPECIAL_CATEGORY_COLOUR } from "@/design";
+import { SPECIAL_CATEGORY_COLOUR } from "@/styles/design";
 
 export function renderGamesTable(
   results: GameResult[],
@@ -68,7 +68,7 @@ export function renderGamesTable(
 
       return `
         <tr class="${rowClass}">
-          <td>${gameId}</td>
+          <td><a href="/analysis/?game=${gameId}" style="color:inherit;text-decoration:none;" title="View analysis">${gameId}</a></td>
           <td class="${winnerClass}">${winnerText}</td>
           <td>${marginText}</td>
           <td>${totalWifey}</td>
@@ -78,7 +78,7 @@ export function renderGamesTable(
           <td>${runMargin}</td>
           <td>${specialTick("Nectar")}</td>
           <td>${specialTick("Duet")}</td>
-          <td>${specialTick("Hummingbirds")}</td>
+          <td>${specialTick("HummingBirds")}</td>
         </tr>`;
     })
     .join("");

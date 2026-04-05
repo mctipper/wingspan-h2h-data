@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "chart.js";
 import type { Tally } from "@/types/tally";
-import { COLOURS } from "@/design";
+import { COLOURS } from "@/styles/design";
 
 Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Filler, Tooltip);
 

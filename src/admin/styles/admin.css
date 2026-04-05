@@ -1,0 +1,378 @@
+/* Admin-specific styles — extends src/styles/main.css design tokens */
+
+/* ── Admin Nav ───────────────────────────────────────────── */
+
+header nav {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+header nav a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+header nav a:hover,
+header nav a.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--colour-wifey);
+}
+
+/* ── View container ──────────────────────────────────────── */
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.view-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+/* ── Card ────────────────────────────────────────────────── */
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-colour);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+/* ── Form ────────────────────────────────────────────────── */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-colour);
+  border-radius: calc(var(--radius) / 2);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  padding: 0.45rem 0.75rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--colour-wifey);
+}
+
+.form-group input[readonly] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-group .field-error {
+  font-size: 0.72rem;
+  color: #e05454;
+  margin-top: 0.15rem;
+}
+
+/* ── Category rows ───────────────────────────────────────── */
+
+.category-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.category-row label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-bottom: 0.2rem;
+  display: block;
+}
+
+.category-row input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-colour);
+  border-radius: calc(var(--radius) / 2);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  padding: 0.4rem 0.6rem;
+  width: 100%;
+  outline: none;
+}
+
+.category-row input:focus {
+  border-color: var(--colour-wifey);
+}
+
+.category-rows-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border-colour);
+  margin-bottom: 0.25rem;
+}
+
+.category-rows-header span {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.category-rows-header span:nth-child(2),
+.category-rows-header span:nth-child(3) {
+  text-align: right;
+}
+
+/* ── Form summary row ────────────────────────────────────── */
+
+.form-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: calc(var(--radius) / 2);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--colour-wifey);
+  color: #fff;
+  border-color: var(--colour-wifey);
+}
+.btn--primary:hover:not(:disabled) { opacity: 0.85; }
+
+.btn--secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-colour);
+}
+.btn--secondary:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.btn--danger {
+  background: transparent;
+  color: #e05454;
+  border-color: #e05454;
+}
+.btn--danger:hover:not(:disabled) { background: rgba(224, 84, 84, 0.12); }
+
+.btn--icon {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.add-category-btn {
+  margin-top: 0.25rem;
+  align-self: flex-start;
+}
+
+/* ── Form errors summary ─────────────────────────────────── */
+
+.form-errors {
+  background: rgba(224, 84, 84, 0.08);
+  border: 1px solid rgba(224, 84, 84, 0.3);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: #e05454;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+/* ── Game list table ─────────────────────────────────────── */
+
+.games-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.games-list-table thead {
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+}
+
+.games-list-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-colour);
+  white-space: nowrap;
+}
+
+.games-list-table td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border-colour);
+  color: var(--text-primary);
+}
+
+.games-list-table tbody tr:last-child td { border-bottom: none; }
+
+.games-list-table tbody tr.row--wifey { background: var(--row-wifey); }
+.games-list-table tbody tr.row--hubby { background: var(--row-hubby); }
+.games-list-table tbody tr.row--tiebreaker-wifey { background: var(--row-tiebreaker-wifey); }
+.games-list-table tbody tr.row--tiebreaker-hubby { background: var(--row-tiebreaker-hubby); }
+.games-list-table tbody tr.row--draw { background: var(--row-draw); }
+
+.games-list-table .row-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+/* Analysis styles are in main.css (shared with public analysis page) */
+
+/* ── Nav back link ───────────────────────────────────────── */
+
+header nav .nav-back {
+  opacity: 0.6;
+}
+
+header nav .nav-back:hover {
+  opacity: 1;
+  border-bottom-color: transparent;
+}
+
+/* ── Analysis admin wrapper nav ──────────────────────────── */
+
+.analysis-admin-nav {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+/* ── Git push panel ──────────────────────────────────────── */
+
+.git-panel {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.git-panel input {
+  flex: 1;
+  min-width: 220px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-colour);
+  border-radius: calc(var(--radius) / 2);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  padding: 0.45rem 0.75rem;
+  outline: none;
+}
+
+.git-panel input:focus { border-color: var(--colour-wifey); }
+
+/* ── Toast ───────────────────────────────────────────────── */
+
+#toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 0.65rem 1.1rem;
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  animation: toast-in 0.2s ease;
+  pointer-events: auto;
+}
+
+.toast--success {
+  background: #1e4d2b;
+  border: 1px solid #2d7a44;
+  color: #6ee095;
+}
+
+.toast--error {
+  background: #4d1e1e;
+  border: 1px solid #7a2d2d;
+  color: #e06e6e;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 800px) {
+  .form-meta { grid-template-columns: 1fr 1fr; }
+  .category-row { grid-template-columns: 1fr 1fr 1fr auto; }
+}

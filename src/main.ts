@@ -5,6 +5,17 @@ import { renderGamesTable } from "@/components/gamesTable";
 import { renderRunningTallyChart } from "@/components/charts/runningTallyChart";
 import { renderMarginChart } from "@/components/charts/marginChart";
 
+if (import.meta.env.VITE_ADMIN_MODE === "true") {
+  const header = document.querySelector("header");
+  if (header) {
+    const link = document.createElement("a");
+    link.href = "/admin/";
+    link.textContent = "Admin";
+    link.className = "admin-link";
+    header.appendChild(link);
+  }
+}
+
 const summaryBarEl = document.getElementById("summary-bar");
 const gamesTableEl = document.getElementById("games-table");
 const runningTallyEl = document.getElementById("chart-running-tally");
