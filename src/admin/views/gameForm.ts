@@ -6,8 +6,8 @@ import { validateGame } from "@admin/validation/gameValidator";
 
 interface CategoryRowState {
   name: string;
-  hubby: number | "";
   wifey: number | "";
+  hubby: number | "";
 }
 
 export function renderGameForm(
@@ -26,14 +26,14 @@ export function renderGameForm(
   // Seed category rows from existing game, last game (new mode), or a single blank row
   const lastGame = allGames.length > 0 ? allGames[allGames.length - 1] : null;
   let rows: CategoryRowState[] = isEdit
-    ? Object.keys(existingGame!.players.hubby).map((name) => ({
+    ? Object.keys(existingGame!.players.wifey).map((name) => ({
         name,
-        hubby: existingGame!.players.hubby[name],
         wifey: existingGame!.players.wifey[name],
+        hubby: existingGame!.players.hubby[name],
       }))
     : lastGame
-    ? Object.keys(lastGame.players.hubby).map((name) => ({ name, hubby: "", wifey: "" }))
-    : [{ name: VALID_CATEGORIES[0], hubby: "", wifey: "" }];
+    ? Object.keys(lastGame.players.wifey).map((name) => ({ name, wifey: "", hubby: "" }))
+    : [{ name: VALID_CATEGORIES[0], wifey: "", hubby: "" }];
 
   let drawResult: string = existingGame?.drawResult ?? "";
   let submitErrors: string[] = [];
@@ -43,10 +43,10 @@ export function renderGameForm(
     const wifey: Record<string, number> = {};
     for (const row of rows) {
       const name = String(row.name).trim();
-      hubby[name] = Number(row.hubby);
       wifey[name] = Number(row.wifey);
+      hubby[name] = Number(row.hubby);
     }
-    const base: RawGame = { game_id: nextId, players: { hubby, wifey } };
+    const base: RawGame = { game_id: nextId, players: { wifey, hubby } };
     if (drawResult) {
       base.drawResult = drawResult as RawGame["drawResult"];
     }
@@ -66,10 +66,10 @@ export function renderGameForm(
             </select>
           </div>
           <div>
-            <input type="number" class="cat-hubby" data-idx="${i}" value="${row.hubby === "" ? "" : row.hubby}" placeholder="0" min="0" />
+            <input type="number" class="cat-wifey" data-idx="${i}" value="${row.wifey === "" ? "" : row.wifey}" placeholder="0" min="0" />
           </div>
           <div>
-            <input type="number" class="cat-wifey" data-idx="${i}" value="${row.wifey === "" ? "" : row.wifey}" placeholder="0" min="0" />
+            <input type="number" class="cat-hubby" data-idx="${i}" value="${row.hubby === "" ? "" : row.hubby}" placeholder="0" min="0" />
           </div>
           <button type="button" class="btn btn--danger btn--icon remove-row" data-idx="${i}" ${rows.length <= 1 ? "disabled" : ""} title="Remove">×</button>
         </div>`
@@ -82,15 +82,15 @@ export function renderGameForm(
         rows[Number(sel.dataset.idx)].name = sel.value;
       });
     });
-    container.querySelectorAll<HTMLInputElement>(".cat-hubby").forEach((inp) => {
-      inp.addEventListener("input", () => {
-        rows[Number(inp.dataset.idx)].hubby =
-          inp.value === "" ? "" : Number(inp.value);
-      });
-    });
     container.querySelectorAll<HTMLInputElement>(".cat-wifey").forEach((inp) => {
       inp.addEventListener("input", () => {
         rows[Number(inp.dataset.idx)].wifey =
+          inp.value === "" ? "" : Number(inp.value);
+      });
+    });
+    container.querySelectorAll<HTMLInputElement>(".cat-hubby").forEach((inp) => {
+      inp.addEventListener("input", () => {
+        rows[Number(inp.dataset.idx)].hubby =
           inp.value === "" ? "" : Number(inp.value);
       });
     });
@@ -127,8 +127,8 @@ export function renderGameForm(
           <div style="margin-bottom:0.5rem">
             <div class="category-rows-header">
               <span>Category</span>
-              <span>Hubby</span>
               <span>Wifey</span>
+              <span>Hubby</span>
               <span></span>
             </div>
             <div id="category-rows-container" class="category-rows"></div>
