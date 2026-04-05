@@ -5,6 +5,9 @@ services:
     ports:
       - "5173:5173"
     restart: unless-stopped
+    volumes:
+      # Map the source file specifically to the host
+      - ./src/assets/games.json:/app/src/assets/games.json
 
   admin:
     build: .
@@ -12,3 +15,5 @@ services:
     ports:
       - "5174:5173"
     restart: unless-stopped
+    volumes:
+      - ./src/assets/games.json:/app/src/assets/games.json
