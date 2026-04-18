@@ -32,4 +32,7 @@ Public page is deployed on Github pages to allow easy viewing of stats offline, 
   
 ## TODO
 
-Perfect Games - Count how many games were won by winning in every category.
+* Probably should put some unit tests in here for some of the functions
+* Some of the code is a bit verbose, could do with a tidy-up
+* The server / data structure is a bit disjointed; due to the 'admin' layer server-api of modifying the data directly _and_ having to deploy the data directly for gh-pages hosting. Could do this a bit neater
+* Percentage of totals analysis
