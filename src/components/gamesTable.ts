@@ -15,7 +15,7 @@ export function renderGamesTable(
 
   const rows = reversed
     .map((game) => {
-      const { gameId, winner, margin, totalWifey, totalHubby, tiebreaker, categories } = game;
+      const { gameId, winner, margin, totalWifey, totalHubby, tiebreaker, categories, perfect } = game;
 
       let winnerText: string;
       let winnerClass: string;
@@ -29,6 +29,9 @@ export function renderGamesTable(
         winnerText = "Hubby";
         winnerClass = "winner--hubby";
       }
+
+      // Check if perfect game (winner won every category)
+      const displayWinner = winnerText + (perfect ? "!" : "");
 
       const absMargin = Math.abs(margin);
       const marginText = winner === "draw" || tiebreaker ? "0" : String(absMargin);
@@ -70,7 +73,7 @@ export function renderGamesTable(
       return `
         <tr class="${rowClass}" data-game-id="${gameId}">
           <td><a href="${getAnalysisUrl(gameId)}" style="color:inherit;text-decoration:none;text-decoration:underline;" title="View analysis">${gameId}</a></td>
-          <td class="${winnerClass}">${winnerText}</td>
+          <td class="${winnerClass}">${displayWinner}</td>
           <td>${marginText}</td>
           <td>${totalWifey}</td>
           <td>${totalHubby}</td>

@@ -30,4 +30,9 @@ export interface GameResult {
    * Based on raw totals only — does not reflect tiebreaker.
    */
   margin: number;
+  /**
+   * True when the game was a perfect game (winner won every category).
+   * Always false for draws and normal wins.
+   */
+  perfect: boolean;
 }

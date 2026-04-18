@@ -64,12 +64,15 @@ export function parseGame(raw: RawGame): GameResult {
     winner,
     tiebreaker,
     margin: rawMargin,
+    perfect: false, // to be updated later in tally building
   };
 }
 
 export function buildTally(results: GameResult[]): Tally {
   let winsWifey = 0;
   let winsHubby = 0;
+  let perfectGamesWifey = 0;
+  let perfectGamesHubby = 0;
   let pureDraws = 0;
   let cumulativeMargin = 0;
 
@@ -170,6 +173,11 @@ export function buildTally(results: GameResult[]): Tally {
       // Win (normal or tiebreaker) — counts as a regular win for streaks and totals
       if (winner === "wifey") {
         winsWifey++;
+        // Check if perfect game (won every category)
+        if (categories.every((c) => c.winner === "wifey")) {
+          perfectGamesWifey++;
+          result.perfect = true;
+        }
         if (tiebreaker) {
           drawSummary.totalDrawScores++;
           drawSummary.tiebreakerWins.wifey++;
@@ -179,6 +187,11 @@ export function buildTally(results: GameResult[]): Tally {
         }
       } else {
         winsHubby++;
+        // Check if perfect game (won every category)
+        if (categories.every((c) => c.winner === "hubby")) {
+          perfectGamesHubby++;
+          result.perfect = true;
+        }
         if (tiebreaker) {
           drawSummary.totalDrawScores++;
           drawSummary.tiebreakerWins.hubby++;
@@ -212,19 +225,6 @@ export function buildTally(results: GameResult[]): Tally {
       cumulativeMargin,
       runningStreak: { ...currentStreak },
     });
-  }
-
-  // Peak cumulative leads — derived from running history
-  let maxCumulativeWinsWifey = 0;
-  let maxCumulativeWinsHubby = 0;
-  let maxCumulativeMarginWifey = 0;
-  let maxCumulativeMarginHubby = 0;
-  for (const e of runningHistory) {
-    const winDiff = e.cumulativeWinsWifey - e.cumulativeWinsHubby;
-    if (winDiff > maxCumulativeWinsWifey) maxCumulativeWinsWifey = winDiff;
-    if (-winDiff > maxCumulativeWinsHubby) maxCumulativeWinsHubby = -winDiff;
-    if (e.cumulativeMargin > maxCumulativeMarginWifey) maxCumulativeMarginWifey = e.cumulativeMargin;
-    if (-e.cumulativeMargin > maxCumulativeMarginHubby) maxCumulativeMarginHubby = -e.cumulativeMargin;
   }
 
   // Find last gameId of longest streaks
@@ -278,6 +278,7 @@ export function buildTally(results: GameResult[]): Tally {
   return {
     totalGames: results.length,
     wins: { wifey: winsWifey, hubby: winsHubby },
+    perfectGames: { wifey: perfectGamesWifey, hubby: perfectGamesHubby },
     pureDraws,
     currentStreak,
     longestStreakWifey,
@@ -298,10 +299,6 @@ export function buildTally(results: GameResult[]): Tally {
     minWinningTotalWifeyGameId,
     minWinningTotalHubby: isFinite(minWinningTotalHubby) ? minWinningTotalHubby : 0,
     minWinningTotalHubbyGameId,
-    maxCumulativeWinsWifey,
-    maxCumulativeWinsHubby,
-    maxCumulativeMarginWifey,
-    maxCumulativeMarginHubby,
     maxScoreByCategory,
     avgScoreByCategory,
     universalCategories,

@@ -38,6 +38,8 @@ export interface Tally {
   totalGames: number;
   /** Win counts — tiebreaker wins are included here as regular wins */
   wins: Record<Player, number>;
+  /** Perfect games (won every single category) */
+  perfectGames: Record<Player, number>;
   /** Pure draws only (no tiebreaker) */
   pureDraws: number;
   currentStreak: Streak;
@@ -64,12 +66,6 @@ export interface Tally {
   minWinningTotalWifeyGameId: number | null;
   minWinningTotalHubby: number;
   minWinningTotalHubbyGameId: number | null;
-  /** Peak cumulative win lead ever held */
-  maxCumulativeWinsWifey: number;
-  maxCumulativeWinsHubby: number;
-  /** Peak cumulative score margin ever held */
-  maxCumulativeMarginWifey: number;
-  maxCumulativeMarginHubby: number;
 
   /** Max score per category (overall total first, then each category) */
   maxScoreByCategory: CategoryStat[];
