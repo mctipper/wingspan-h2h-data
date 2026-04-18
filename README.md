@@ -13,8 +13,10 @@ The `.nvmrc` instructs to use Node v20, and yeh makes use of `nvm`
 > nvm use  
 > npm install  
 > npm run dev
-Optional
-> npm run dev:admin
+
+Optional  
+> npm run dev:admin  
+
 To get to the admin site which allows entering of data and whatnot.
 
 
