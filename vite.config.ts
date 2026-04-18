@@ -4,6 +4,7 @@ import { resolve } from "path";
 const isAdmin = process.env.VITE_ADMIN_MODE === "true";
 
 export default defineConfig({
+  base: '/wingspan-h2h-data/',
   root: "src",
   build: {
     outDir: "../dist",
