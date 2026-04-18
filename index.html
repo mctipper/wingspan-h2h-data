@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wingspan H2H</title>
+    <script type="module" crossorigin src="/wingspan-h2h-data/assets/main-DVyMdjHL.js"></script>
+    <link rel="modulepreload" crossorigin href="/wingspan-h2h-data/assets/chart-BPZlib32.js">
+    <link rel="stylesheet" crossorigin href="/wingspan-h2h-data/assets/chart-RLBqcbBV.css">
+  </head>
+  <body>
+    <header>
+      <h1>Wingspan H2H</h1>
+    </header>
+
+    <main>
+      <section id="summary-bar" aria-label="Summary statistics"></section>
+
+      <section id="charts-col" aria-label="Charts">
+        <div class="chart-card chart-card--full">
+          <h2>Running Tally</h2>
+          <div class="chart-container chart-container--tall">
+            <canvas id="chart-running-tally"></canvas>
+          </div>
+        </div>
+        <div class="chart-card chart-card--full">
+          <h2>Streaks</h2>
+          <div class="chart-container chart-container--tall">
+            <canvas id="chart-streaks"></canvas>
+          </div>
+        </div>
+        <div class="chart-card chart-card--full">
+          <h2>Cumulative Margin</h2>
+          <div class="chart-container chart-container--tall">
+            <canvas id="chart-margin"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section id="games-table" aria-label="All games"></section>
+    </main>
+
+  </body>
+</html>
