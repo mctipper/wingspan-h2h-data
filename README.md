@@ -27,3 +27,9 @@ Setup to run with portainer because easier. Clone the repo as a stack.
 ## Github Pages
 
 Public page is deployed on Github pages to allow easy viewing of stats offline, but as its static there is no updating of said stats etc... purposefully.  Deployed via github actions
+
+> npm run deploy  
+  
+## TODO
+
+Perfect Games - Count how many games were won by winning in every category.
