@@ -46,7 +46,6 @@ export function renderGameList(el: HTMLElement, games: RawGame[], onDelete: () =
           <td>
             <div class="row-actions">
               <a href="#edit/${game_id}" class="btn btn--secondary btn--icon" title="Edit">Edit</a>
-              <a href="#analysis/${game_id}" class="btn btn--secondary btn--icon" title="Analysis">Analysis</a>
               <button class="btn btn--danger btn--icon delete-btn" data-id="${game_id}" title="Delete">Delete</button>
             </div>
           </td>

@@ -173,6 +173,9 @@ export function renderGameForm(
   el.innerHTML = `
     <div class="view">
       <div class="card">
+        <div style="margin-bottom: 1rem;">
+          <a href="#games" style="color: var(--colour-wifey); text-decoration: none; font-weight: 500;">← Back to Games List</a>
+        </div>
         <div class="view-title" style="margin-bottom:1rem">${isEdit ? `Edit Game #${nextId}` : "New Game"}</div>
 
         <form id="game-form" novalidate>
@@ -253,10 +256,10 @@ export function renderGameForm(
     try {
       if (isEdit) {
         await updateGame(nextId, raw);
-        showToast(`Game #${nextId} updated`, "success");
+        showToast(`Game #${nextId} updated successfully`, "success");
       } else {
         await createGame(raw);
-        showToast(`Game #${nextId} added`, "success");
+        showToast(`Game #${nextId} added successfully`, "success");
       }
       // Add a delay after successful save to allow seeing the toast
       setTimeout(() => {

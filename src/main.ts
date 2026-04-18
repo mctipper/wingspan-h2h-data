@@ -5,12 +5,13 @@ import { renderGamesTable } from "@/components/gamesTable";
 import { renderRunningTallyChart } from "@/components/charts/runningTallyChart";
 import { renderMarginChart } from "@/components/charts/marginChart";
 import { renderStreakBarChart } from "@/components/charts/streakBarChart";
+import { getAdminUrl } from "@/utils/urls";
 
 if (import.meta.env.VITE_ADMIN_MODE === "true") {
   const header = document.querySelector("header");
   if (header) {
     const link = document.createElement("a");
-    link.href = "/admin/";
+    link.href = getAdminUrl();
     link.textContent = "Admin";
     link.className = "admin-link";
     header.appendChild(link);

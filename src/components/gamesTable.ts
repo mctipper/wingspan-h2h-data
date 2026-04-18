@@ -1,6 +1,7 @@
 import type { GameResult } from "@/types/domain";
 import type { RunningEntry } from "@/types/tally";
 import { SPECIAL_CATEGORY_COLOUR } from "@/styles/design";
+import { getAnalysisUrl } from "@/utils/urls";
 
 export function renderGamesTable(
   results: GameResult[],
@@ -68,7 +69,7 @@ export function renderGamesTable(
 
       return `
         <tr class="${rowClass}" data-game-id="${gameId}">
-          <td><a href="/analysis/?game=${gameId}" style="color:inherit;text-decoration:none;text-decoration:underline;" title="View analysis">${gameId}</a></td>
+          <td><a href="${getAnalysisUrl(gameId)}" style="color:inherit;text-decoration:none;text-decoration:underline;" title="View analysis">${gameId}</a></td>
           <td class="${winnerClass}">${winnerText}</td>
           <td>${marginText}</td>
           <td>${totalWifey}</td>

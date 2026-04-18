@@ -1,4 +1,5 @@
 import type { Tally } from "@/types/tally";
+import { getAnalysisUrl } from "@/utils/urls";
 
 function fmt2(n: number): string {
   return n.toFixed(2);
@@ -34,7 +35,7 @@ function cardHtml(c: Card): string {
   const valueClass = `stat-card__value${c.best ? " stat-card__value--best" : ""}`;
   const subClass = `stat-card__sub${c.subBest ? " stat-card__sub--best" : ""}`;
   const valueHtml = c.gameId
-    ? `<a href="/analysis/?game=${c.gameId}" class="stat-card__link" title="View game #${c.gameId}">${c.value}</a>`
+    ? `<a href="${getAnalysisUrl(c.gameId)}" class="stat-card__link" title="View game #${c.gameId}">${c.value}</a>`
     : c.value;
   return `
     <div class="stat-card ${c.modifier}">

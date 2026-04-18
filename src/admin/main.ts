@@ -1,12 +1,18 @@
 import { fetchGames } from "@admin/api/client";
 import { renderGameList } from "@admin/views/gameList";
 import { renderGameForm } from "@admin/views/gameForm";
-import { renderAnalysis } from "@admin/views/analysis";
 import { showToast } from "@admin/components/toast";
+import { getMainUrl } from "@/utils/urls";
 import type { RawGame } from "@/types/raw";
 
 let allGames: RawGame[] = [];
 const root = document.getElementById("view-root")!;
+
+// Set up main site link with correct base path
+const mainLink = document.querySelector<HTMLAnchorElement>('nav a[data-main-link]');
+if (mainLink) {
+  mainLink.href = getMainUrl();
+}
 
 async function bootstrap(): Promise<void> {
   try {
@@ -18,7 +24,7 @@ async function bootstrap(): Promise<void> {
 }
 
 function route(): void {
-  const hash = window.location.hash; // e.g. "#games", "#new", "#edit/3", "#analysis/3"
+  const hash = window.location.hash; // e.g. "#games", "#new", "#edit/3"
   root.innerHTML = "";
 
   if (hash === "#new") {
@@ -28,14 +34,6 @@ function route(): void {
     const game = allGames.find((g) => g.game_id === id) ?? null;
     if (game) {
       renderGameForm(root, allGames, game, onSave);
-    } else {
-      root.innerHTML = `<p style="color:var(--text-secondary);padding:2rem 0">Game #${id} not found. <a href="#games" style="color:var(--colour-wifey)">← Back</a></p>`;
-    }
-  } else if (hash.startsWith("#analysis/")) {
-    const id = parseInt(hash.slice(10), 10);
-    const game = allGames.find((g) => g.game_id === id) ?? null;
-    if (game) {
-      renderAnalysis(root, allGames, game, id);
     } else {
       root.innerHTML = `<p style="color:var(--text-secondary);padding:2rem 0">Game #${id} not found. <a href="#games" style="color:var(--colour-wifey)">← Back</a></p>`;
     }
