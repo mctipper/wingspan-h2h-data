@@ -23,6 +23,7 @@ if (isNaN(gameId)) {
       prev: idx > 0 ? `?game=${games[idx - 1]!.game_id}` : null,
       next: idx < games.length - 1 ? `?game=${games[idx + 1]!.game_id}` : null,
     };
-    renderAnalysisView(root, game, nav);
+    // Pass all games to enable cross-game category average calculation
+    renderAnalysisView(root, game, nav, games);
   }
 }

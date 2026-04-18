@@ -67,8 +67,8 @@ export function renderGamesTable(
       }
 
       return `
-        <tr class="${rowClass}">
-          <td><a href="/analysis/?game=${gameId}" style="color:inherit;text-decoration:none;" title="View analysis">${gameId}</a></td>
+        <tr class="${rowClass}" data-game-id="${gameId}">
+          <td><a href="/analysis/?game=${gameId}" style="color:inherit;text-decoration:none;text-decoration:underline;" title="View analysis">${gameId}</a></td>
           <td class="${winnerClass}">${winnerText}</td>
           <td>${marginText}</td>
           <td>${totalWifey}</td>

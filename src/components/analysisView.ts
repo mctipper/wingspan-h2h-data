@@ -8,9 +8,9 @@ import {
   Legend,
   type Plugin,
 } from "chart.js";
-import { parseGame } from "@/data/parser";
+import { parseGame, calculateCategoryAverages } from "@/data/parser";
 import { COLOURS } from "@/styles/design";
-import type { RawGame } from "@/types/raw";
+import type { RawGame, RawGameData } from "@/types/raw";
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -23,7 +23,7 @@ export function renderAnalysisView(
   el: HTMLElement,
   game: RawGame,
   nav?: AnalysisNav,
-  allGames?: RawGame[]
+  allGames?: RawGameData
 ): void {
   const result = parseGame(game);
   const { categories, totalWifey, totalHubby, winner, tiebreaker, margin } = result;
@@ -48,6 +48,23 @@ export function renderAnalysisView(
   const totalWinnerText = 
     winner === "draw" ? "Draw" : winner === "wifey" ? "Wifey" : "Hubby";
 
+  // Calculate per-category averages from cross-game category analysis (needed for table and chart)
+  let wifeyByCategory: Record<string, number> = {};
+  let hubbyByCategory: Record<string, number> = {};
+
+  if (allGames && allGames.length > 0) {
+    // Use cached cross-game category averages (only games with matching categories)
+    const categoryAverages = calculateCategoryAverages(game, allGames);
+    wifeyByCategory = categoryAverages.wifeyByCategory;
+    hubbyByCategory = categoryAverages.hubbyByCategory;
+  } else {
+    // Fallback: use current game values as "averages" if allGames not provided
+    categories.forEach((c) => {
+      wifeyByCategory[c.category] = c.wifey;
+      hubbyByCategory[c.category] = c.hubby;
+    });
+  }
+
   const tableRows = categories
     .map((c) => {
       const catWinnerClass =
@@ -56,24 +73,41 @@ export function renderAnalysisView(
         c.winner === "draw" ? "row--draw" : c.winner === "wifey" ? "row--wifey" : "row--hubby";
       const catWinnerText =
         c.winner === "draw" ? "Draw" : c.winner === "wifey" ? "Wifey" : "Hubby";
+      
+      // Calculate difference from average for each player
+      const wifeyAvg = wifeyByCategory[c.category] ?? 0;
+      const hubbyAvg = hubbyByCategory[c.category] ?? 0;
+      const wifeyDiff = c.wifey - wifeyAvg;
+      const hubbyDiff = c.hubby - hubbyAvg;
+      const wifeyDiffStr = wifeyDiff >= 0 ? `+${wifeyDiff.toFixed(1)}` : wifeyDiff.toFixed(1);
+      const hubbyDiffStr = hubbyDiff >= 0 ? `+${hubbyDiff.toFixed(1)}` : hubbyDiff.toFixed(1);
+      
       return `
         <tr class=${catWinnerRowClass}>
           <td>${c.category}</td>
-          <td class="col-right col-wifey">${c.wifey}</td>
-          <td class="col-right col-hubby">${c.hubby}</td>
+          <td class="col-right col-wifey">${c.wifey}<br><span class="category-diff">(${wifeyDiffStr})</span></td>
+          <td class="col-right col-hubby">${c.hubby}<br><span class="category-diff">(${hubbyDiffStr})</span></td>
           <td class="col-right ${catWinnerClass}">${catWinnerText}</td>
-          <td class="col-right">${c.margin}</td>
+          <td class="col-right ${catWinnerClass}">${c.margin}</td>
         </tr>`;
     })
     .join("") +
     // totals
-    `<tr class=table-row--total ${totalWinnerRowClass}>
+    (() => {
+      const avgTotalWifey = categories.reduce((sum, c) => sum + (wifeyByCategory[c.category] ?? 0), 0);
+      const avgTotalHubby = categories.reduce((sum, c) => sum + (hubbyByCategory[c.category] ?? 0), 0);
+      const wifeyTotalDiff = totalWifey - avgTotalWifey;
+      const hubbyTotalDiff = totalHubby - avgTotalHubby;
+      const wifeyTotalDiffStr = wifeyTotalDiff >= 0 ? `+${wifeyTotalDiff.toFixed(1)}` : wifeyTotalDiff.toFixed(1);
+      const hubbyTotalDiffStr = hubbyTotalDiff >= 0 ? `+${hubbyTotalDiff.toFixed(1)}` : hubbyTotalDiff.toFixed(1);
+      return `<tr class=table-row--total ${totalWinnerRowClass}>
         <td><strong><i>TOTAL</i></strong></td>
-        <td class="col-right col-wifey">${totalWifey}</td>
-        <td class="col-right col-hubby">${totalHubby}</td>
+        <td class="col-right col-wifey">${totalWifey}<br><span class="category-diff">(${wifeyTotalDiffStr})</span></td>
+        <td class="col-right col-hubby">${totalHubby}<br><span class="category-diff">(${hubbyTotalDiffStr})</span></td>
         <td class="col-right ${totalWinnerClass}">${totalWinnerText}</td>
-        <td class="col-right">${Math.abs(margin)}</td>
-      </tr>`    
+        <td class="col-right ${totalWinnerClass}">${Math.abs(margin)}</td>
+      </tr>`;
+    })()    
     ;
 
   el.innerHTML = `
@@ -95,10 +129,6 @@ export function renderAnalysisView(
       </div>
     </div>
 
-    <div class="analysis-chart-wrap">
-      <canvas id="analysis-chart-${game.game_id}"></canvas>
-    </div>
-
     <div class="analysis-table-wrap">
       <table class="analysis-table">
         <thead>
@@ -112,6 +142,10 @@ export function renderAnalysisView(
         </thead>
         <tbody>${tableRows}</tbody>
       </table>
+    </div>
+
+    <div class="analysis-chart-wrap">
+      <canvas id="analysis-chart-${game.game_id}"></canvas>
     </div>`;
 
   // Size the chart container to fit all category bars
@@ -123,18 +157,22 @@ export function renderAnalysisView(
   ) as HTMLCanvasElement | null;
   if (!canvas) return;
 
-  const wifeyAvg = categories.reduce((s, c) => s + c.wifey, 0) / categories.length;
-  const hubbyAvg = categories.reduce((s, c) => s + c.hubby, 0) / categories.length;
+  // Prepare data for datasets
+  const wifeyValues = categories.map((c) => c.wifey);
+  const hubbyValues = categories.map((c) => c.hubby);
 
   // Draw value labels at the base of each bar (just right of the axis)
   const dataLabelsPlugin: Plugin<"bar"> = {
     id: "dataLabels",
     afterDatasetsDraw(chart) {
       const { ctx } = chart;
-      chart.data.datasets.forEach((_ds, di) => {
+      // Only label the first two datasets (actual game values)
+      for (let di = 0; di < 2; di++) {
+        const ds = chart.data.datasets[di];
+        if (!ds) continue;
         const meta = chart.getDatasetMeta(di);
         meta.data.forEach((el, i) => {
-          const value = chart.data.datasets[di]!.data[i] as number;
+          const value = ds.data[i] as number;
           const bar = el as unknown as { base: number; y: number };
           ctx.save();
           ctx.fillStyle = COLOURS.chartText;
@@ -144,46 +182,61 @@ export function renderAnalysisView(
           ctx.fillText(String(value), bar.base + 4, bar.y);
           ctx.restore();
         });
-      });
+      }
     },
   };
 
-  // Draw soft dashed average reference lines for each player
-  const avgLinesPlugin: Plugin<"bar"> = {
-    id: "avgLines",
+  // Draw black dashed vertical lines at average values on top of each bar
+  const averageLinesPlugin: Plugin<"bar"> = {
+    id: "averageLines",
     afterDatasetsDraw(chart) {
-      const { ctx, chartArea, scales } = chart;
-      if (!chartArea) return;
-      const xScale = scales["x"]!;
-      (
-        [
-          [wifeyAvg, COLOURS.wifey],
-          [hubbyAvg, COLOURS.hubby],
-        ] as [number, string][]
-      ).forEach(([avg, colour]) => {
-        const x = xScale.getPixelForValue(avg);
-        ctx.save();
-        ctx.strokeStyle = colour + "55";
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([4, 3]);
-        ctx.beginPath();
-        ctx.moveTo(x, chartArea.top);
-        ctx.lineTo(x, chartArea.bottom);
-        ctx.stroke();
-        ctx.restore();
+      const { ctx, scales } = chart;
+      if (!scales.x) return;
+
+      const xScale = scales.x;
+
+      // Draw average lines for wifey (dataset 0) and hubby (dataset 1)
+      [0, 1].forEach((datasetIndex) => {
+        const meta = chart.getDatasetMeta(datasetIndex);
+        if (!meta.data || meta.hidden) return;
+
+        meta.data.forEach((element, categoryIndex) => {
+          const categoryName = categories[categoryIndex]?.category;
+          if (!categoryName) return;
+
+          const avg =
+            datasetIndex === 0
+              ? wifeyByCategory[categoryName] ?? 0
+              : hubbyByCategory[categoryName] ?? 0;
+
+          const xPos = xScale.getPixelForValue(avg);
+
+          const bar = element as unknown as { y: number };
+          const barHeight = 12; // Approximate bar height for line extent
+
+          ctx.save();
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 3]);
+          ctx.beginPath();
+          ctx.moveTo(xPos, bar.y - barHeight);
+          ctx.lineTo(xPos, bar.y + barHeight);
+          ctx.stroke();
+          ctx.restore();
+        });
       });
     },
   };
 
   new Chart(canvas, {
     type: "bar",
-    plugins: [dataLabelsPlugin, avgLinesPlugin],
+    plugins: [dataLabelsPlugin, averageLinesPlugin],
     data: {
       labels: categories.map((c) => c.category),
       datasets: [
         {
           label: "Wifey",
-          data: categories.map((c) => c.wifey),
+          data: wifeyValues,
           backgroundColor: COLOURS.wifeyFill,
           borderColor: COLOURS.wifey,
           borderWidth: 2,
@@ -191,7 +244,7 @@ export function renderAnalysisView(
         },
         {
           label: "Hubby",
-          data: categories.map((c) => c.hubby),
+          data: hubbyValues,
           backgroundColor: COLOURS.hubbyFill,
           borderColor: COLOURS.hubby,
           borderWidth: 2,
@@ -222,6 +275,29 @@ export function renderAnalysisView(
           bodyColor: COLOURS.tooltipBody,
           borderColor: COLOURS.tooltipBorder,
           borderWidth: 1,
+          callbacks: {
+            afterLabel(context) {
+              const categoryName = categories[context.dataIndex]?.category;
+              const value = context.parsed.x;
+              if (!categoryName || value === null || value === undefined) return "";
+
+              if (context.datasetIndex === 0) {
+                // Wifey actual vs avg
+                const avg = wifeyByCategory[categoryName] ?? 0;
+                const diff = (value - avg).toFixed(1);
+                const sign = parseFloat(diff) >= 0 ? "+" : "";
+                return `Average: ${avg.toFixed(1)}\nDifference: ${sign}${diff}`;
+              } else if (context.datasetIndex === 1) {
+                // Hubby actual vs avg
+                const avg = hubbyByCategory[categoryName] ?? 0;
+                const diff = (value - avg).toFixed(1);
+                const sign = parseFloat(diff) >= 0 ? "+" : "";
+                return `Average: ${avg.toFixed(1)}\nDifference: ${sign}${diff}`;
+              }
+
+              return "";
+            },
+          },
         },
       },
     },

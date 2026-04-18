@@ -192,6 +192,11 @@ main {
   line-height: 1;
 }
 
+.stat-card__link {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .stat-card--wifey .stat-card__value {
   color: var(--colour-wifey);
 }
@@ -470,6 +475,13 @@ tr.row--draw:hover             { background: rgba(136, 136, 136, 0.14); }
 .analysis-table .col-right { text-align: right; }
 .analysis-table .col-hubby { color: var(--colour-hubby); }
 .analysis-table .col-wifey { color: var(--colour-wifey); }
+
+.category-diff {
+  display: block;
+  font-size: 0.7rem;
+  color: inherit;
+  font-weight: 400;
+}
 
 /* ── Analysis nav (game ‹ › navigation) ──────────────────── */
 

@@ -38,10 +38,25 @@ export function renderGameForm(
   let drawResult: string = existingGame?.drawResult ?? "";
   let submitErrors: string[] = [];
 
+  function getAvailableCategories(excludeIdx?: number): string[] {
+    const used = new Set(
+      rows
+        .map((row, i) => (i !== excludeIdx ? String(row.name).trim() : null))
+        .filter((name) => name)
+    );
+    return VALID_CATEGORIES.filter((cat) => !used.has(cat));
+  }
+
   function buildRawGame(): RawGame {
     const hubby: Record<string, number> = {};
     const wifey: Record<string, number> = {};
-    for (const row of rows) {
+
+    // Sort rows by VALID_CATEGORIES order before building
+    const sortedRows = [...rows].sort(
+      (a, b) => VALID_CATEGORIES.indexOf(a.name as any) - VALID_CATEGORIES.indexOf(b.name as any)
+    );
+
+    for (const row of sortedRows) {
       const name = String(row.name).trim();
       wifey[name] = Number(row.wifey);
       hubby[name] = Number(row.hubby);
@@ -53,6 +68,32 @@ export function renderGameForm(
     return base;
   }
 
+  function updateTotals() {
+    const totalWifey = rows.reduce((sum, row) => sum + (row.wifey || 0), 0);
+    const totalHubby = rows.reduce((sum, row) => sum + (row.hubby || 0), 0);
+
+    const totalRow = document.getElementById("total-row");
+    if (totalRow) {
+      const wifeyCell = totalRow.querySelector(".total-wifey") as HTMLElement;
+      const hubbyCell = totalRow.querySelector(".total-hubby") as HTMLElement;
+      if (wifeyCell) wifeyCell.textContent = totalWifey.toString();
+      if (hubbyCell) hubbyCell.textContent = totalHubby.toString();
+    }
+
+    // Enable/disable draw result dropdown
+    const drawResultDropdown = document.getElementById("draw-result") as HTMLSelectElement;
+    if (drawResultDropdown) {
+      if ((totalWifey === 0 || totalHubby ===0)) {
+        drawResultDropdown.disabled = true;
+      }
+      else if (totalWifey === totalHubby) {
+        drawResultDropdown.disabled = false;
+      } else {
+        drawResultDropdown.disabled = true;
+      }
+    }
+  }
+
   function renderRows(container: HTMLElement): void {
     container.innerHTML = rows
       .map(
@@ -60,9 +101,11 @@ export function renderGameForm(
         <div class="category-row" data-idx="${i}">
           <div>
             <select class="cat-name" data-idx="${i}">
-              ${VALID_CATEGORIES.map(
-                (c) => `<option value="${c}"${c === row.name ? " selected" : ""}>${c}</option>`
-              ).join("")}
+              ${getAvailableCategories(i)
+                .concat(String(row.name))
+                .filter((c, idx, arr) => arr.indexOf(c) === idx)
+                .map((c) => `<option value="${c}"${c === row.name ? " selected" : ""}>${c}</option>`)
+                .join("")}
             </select>
           </div>
           <div>
@@ -76,30 +119,55 @@ export function renderGameForm(
       )
       .join("");
 
+    // Add total row
+    const totalWifey = rows.reduce((sum, row) => sum + (row.wifey || 0), 0);
+    const totalHubby = rows.reduce((sum, row) => sum + (row.hubby || 0), 0);
+    container.innerHTML += `
+      <div id="total-row" class="category-row" style="font-weight: bold; margin-top: 0.5rem;">
+        <div>Total</div>
+        <div class="total-wifey">${totalWifey}</div>
+        <div class="total-hubby">${totalHubby}</div>
+        <div></div>
+      </div>`;
+
     // Bind events
     container.querySelectorAll<HTMLSelectElement>(".cat-name").forEach((sel) => {
       sel.addEventListener("change", () => {
         rows[Number(sel.dataset.idx)].name = sel.value;
+        // Re-render to update available categories for all rows
+        renderRows(container);
       });
     });
     container.querySelectorAll<HTMLInputElement>(".cat-wifey").forEach((inp) => {
       inp.addEventListener("input", () => {
         rows[Number(inp.dataset.idx)].wifey =
           inp.value === "" ? "" : Number(inp.value);
+        updateTotals();
       });
     });
     container.querySelectorAll<HTMLInputElement>(".cat-hubby").forEach((inp) => {
       inp.addEventListener("input", () => {
         rows[Number(inp.dataset.idx)].hubby =
           inp.value === "" ? "" : Number(inp.value);
+        updateTotals();
       });
     });
     container.querySelectorAll<HTMLButtonElement>(".remove-row").forEach((btn) => {
       btn.addEventListener("click", () => {
         rows.splice(Number(btn.dataset.idx), 1);
         renderRows(container);
+        updateAddButtonState();
       });
     });
+
+    updateAddButtonState();
+  }
+
+  function updateAddButtonState(): void {
+    const addBtn = document.getElementById("add-row-btn") as HTMLButtonElement;
+    if (addBtn) {
+      addBtn.disabled = getAvailableCategories().length === 0;
+    }
   }
 
   el.innerHTML = `
@@ -115,7 +183,7 @@ export function renderGameForm(
             </div>
             <div class="form-group">
               <label>Draw Result</label>
-              <select id="draw-result">
+              <select id="draw-result" disabled>
                 <option value="">— Not applicable —</option>
                 <option value="wifey" ${drawResult === "wifey" ? "selected" : ""}>Wifey (tiebreaker)</option>
                 <option value="hubby" ${drawResult === "hubby" ? "selected" : ""}>Hubby (tiebreaker)</option>
@@ -156,8 +224,11 @@ export function renderGameForm(
   });
 
   document.getElementById("add-row-btn")?.addEventListener("click", () => {
-    rows.push({ name: VALID_CATEGORIES[0], hubby: "", wifey: "" });
-    renderRows(rowsContainer);
+    const available = getAvailableCategories();
+    if (available.length > 0) {
+      rows.push({ name: available[0], hubby: "", wifey: "" });
+      renderRows(rowsContainer);
+    }
   });
 
   document.getElementById("game-form")?.addEventListener("submit", async (e) => {
@@ -187,8 +258,12 @@ export function renderGameForm(
         await createGame(raw);
         showToast(`Game #${nextId} added`, "success");
       }
+      // Add a delay after successful save to allow seeing the toast
+      setTimeout(() => {
+        location.hash = "#games";
+      }, 1000);
+
       await onSave();
-      location.hash = "#games";
     } catch (err) {
       showToast(`Error: ${(err as Error).message}`, "error");
       btn.disabled = false;

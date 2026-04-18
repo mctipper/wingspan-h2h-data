@@ -42,20 +42,28 @@ export interface Tally {
   pureDraws: number;
   currentStreak: Streak;
   longestStreakWifey: Streak;
+  longestStreakWifeyLastGameId: number | null;
   longestStreakHubby: Streak;
+  longestStreakHubbyLastGameId: number | null;
   /** Average winning margin for normal wins (tiebreaker games excluded from average) */
   avgMarginWifey: number;
   avgMarginHubby: number;
 
   /** Max total score across all games */
   maxTotalWifey: number;
+  maxTotalWifeyGameId: number | null;
   maxTotalHubby: number;
+  maxTotalHubbyGameId: number | null;
   /** Max winning margin (normal wins only) */
   maxMarginWifey: number;
+  maxMarginWifeyGameId: number | null;
   maxMarginHubby: number;
+  maxMarginHubbyGameId: number | null;
   /** Min total score in a game that was won (normal wins only) */
   minWinningTotalWifey: number;
+  minWinningTotalWifeyGameId: number | null;
   minWinningTotalHubby: number;
+  minWinningTotalHubbyGameId: number | null;
   /** Peak cumulative win lead ever held */
   maxCumulativeWinsWifey: number;
   maxCumulativeWinsHubby: number;

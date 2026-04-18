@@ -86,13 +86,19 @@ export function buildTally(results: GameResult[]): Tally {
   let normalWinsWifey = 0;
   let normalWinsHubby = 0;
 
-  // Max/min score tracking
+  // Max/min score tracking with gameIds
   let maxTotalWifey = 0;
+  let maxTotalWifeyGameId: number | null = null;
   let maxTotalHubby = 0;
+  let maxTotalHubbyGameId: number | null = null;
   let maxMarginWifey = 0;
+  let maxMarginWifeyGameId: number | null = null;
   let maxMarginHubby = 0;
+  let maxMarginHubbyGameId: number | null = null;
   let minWinningTotalWifey = Infinity;
+  let minWinningTotalWifeyGameId: number | null = null;
   let minWinningTotalHubby = Infinity;
+  let minWinningTotalHubbyGameId: number | null = null;
 
   // Per-category accumulators: category -> { sumWifey, sumHubby, maxWifey, maxHubby, count }
   const catAccum = new Map<string, { sumWifey: number; sumHubby: number; maxWifey: number; maxHubby: number; count: number }>();
@@ -104,22 +110,40 @@ export function buildTally(results: GameResult[]): Tally {
   const runningHistory: RunningEntry[] = [];
 
   for (const result of results) {
-    const { winner, tiebreaker, margin, totalWifey, totalHubby, categories } = result;
+    const { winner, tiebreaker, margin, totalWifey, totalHubby, categories, gameId } = result;
 
     // Max totals
-    if (totalWifey > maxTotalWifey) maxTotalWifey = totalWifey;
-    if (totalHubby > maxTotalHubby) maxTotalHubby = totalHubby;
+    if (totalWifey > maxTotalWifey) {
+      maxTotalWifey = totalWifey;
+      maxTotalWifeyGameId = gameId;
+    }
+    if (totalHubby > maxTotalHubby) {
+      maxTotalHubby = totalHubby;
+      maxTotalHubbyGameId = gameId;
+    }
 
     // Max margin and min winning total — normal wins only
     if (!tiebreaker && winner === "wifey") {
       const m = Math.abs(margin);
-      if (m > maxMarginWifey) maxMarginWifey = m;
-      if (totalWifey < minWinningTotalWifey) minWinningTotalWifey = totalWifey;
+      if (m > maxMarginWifey) {
+        maxMarginWifey = m;
+        maxMarginWifeyGameId = gameId;
+      }
+      if (totalWifey < minWinningTotalWifey) {
+        minWinningTotalWifey = totalWifey;
+        minWinningTotalWifeyGameId = gameId;
+      }
     }
     if (!tiebreaker && winner === "hubby") {
       const m = Math.abs(margin);
-      if (m > maxMarginHubby) maxMarginHubby = m;
-      if (totalHubby < minWinningTotalHubby) minWinningTotalHubby = totalHubby;
+      if (m > maxMarginHubby) {
+        maxMarginHubby = m;
+        maxMarginHubbyGameId = gameId;
+      }
+      if (totalHubby < minWinningTotalHubby) {
+        minWinningTotalHubby = totalHubby;
+        minWinningTotalHubbyGameId = gameId;
+      }
     }
 
     // Per-category accumulation
@@ -203,6 +227,28 @@ export function buildTally(results: GameResult[]): Tally {
     if (-e.cumulativeMargin > maxCumulativeMarginHubby) maxCumulativeMarginHubby = -e.cumulativeMargin;
   }
 
+  // Find last gameId of longest streaks
+  let longestStreakWifeyLastGameId: number | null = null;
+  let longestStreakHubbyLastGameId: number | null = null;
+  if (longestStreakWifey.length > 0) {
+    for (let i = runningHistory.length - 1; i >= 0; i--) {
+      if (runningHistory[i].runningStreak.player === "wifey" &&
+          runningHistory[i].runningStreak.length === longestStreakWifey.length) {
+        longestStreakWifeyLastGameId = runningHistory[i].gameId;
+        break;
+      }
+    }
+  }
+  if (longestStreakHubby.length > 0) {
+    for (let i = runningHistory.length - 1; i >= 0; i--) {
+      if (runningHistory[i].runningStreak.player === "hubby" &&
+          runningHistory[i].runningStreak.length === longestStreakHubby.length) {
+        longestStreakHubbyLastGameId = runningHistory[i].gameId;
+        break;
+      }
+    }
+  }
+
   // Build per-category stat arrays (overall total first, then each category)
   const allCategories = [...catAccum.keys()];
   const n = results.length;
@@ -235,15 +281,23 @@ export function buildTally(results: GameResult[]): Tally {
     pureDraws,
     currentStreak,
     longestStreakWifey,
+    longestStreakWifeyLastGameId,
     longestStreakHubby,
+    longestStreakHubbyLastGameId,
     avgMarginWifey: normalWinsWifey > 0 ? totalMarginWifey / normalWinsWifey : 0,
     avgMarginHubby: normalWinsHubby > 0 ? totalMarginHubby / normalWinsHubby : 0,
     maxTotalWifey,
+    maxTotalWifeyGameId,
     maxTotalHubby,
+    maxTotalHubbyGameId,
     maxMarginWifey,
+    maxMarginWifeyGameId,
     maxMarginHubby,
+    maxMarginHubbyGameId,
     minWinningTotalWifey: isFinite(minWinningTotalWifey) ? minWinningTotalWifey : 0,
+    minWinningTotalWifeyGameId,
     minWinningTotalHubby: isFinite(minWinningTotalHubby) ? minWinningTotalHubby : 0,
+    minWinningTotalHubbyGameId,
     maxCumulativeWinsWifey,
     maxCumulativeWinsHubby,
     maxCumulativeMarginWifey,
@@ -264,4 +318,100 @@ export function loadAll(raw: RawGameData): {
   const results = sorted.map(parseGame);
   const tally = buildTally(results);
   return { results, tally };
+}
+
+/**
+ * Session-level cache for category averages by category signature.
+ * Key: sorted category names joined by "|" (e.g., "Birds|Bonus Cards|Eggs|...")
+ * Value: pre-calculated per-category averages for both players across all games
+ */
+const categoryAverageCache = new Map<
+  string,
+  {
+    categories: string[];
+    wifeyByCategory: Record<string, number>;
+    hubbyByCategory: Record<string, number>;
+    wifeyOverall: number;
+    hubbyOverall: number;
+  }
+>();
+
+/**
+ * Calculate per-category averages across all games using the same logic as the main page.
+ * Each category is averaged across all games that have that category, regardless of
+ * whether other categories match. Results are cached by category signature.
+ *
+ * @param game - The reference game (category set is derived from this)
+ * @param allGames - All games to analyze
+ * @returns Per-category averages for wifey/hubby matching main page calculations
+ */
+export function calculateCategoryAverages(
+  game: RawGame,
+  allGames: RawGameData
+): {
+  categories: string[];
+  wifeyByCategory: Record<string, number>;
+  hubbyByCategory: Record<string, number>;
+  wifeyOverall: number;
+  hubbyOverall: number;
+} {
+  // Create category signature (sorted category names joined)
+  const categories = Object.keys(game.players.hubby).sort();
+  const categorySignature = categories.join("|");
+
+  // Check cache first
+  const cached = categoryAverageCache.get(categorySignature);
+  if (cached) {
+    return cached;
+  }
+
+  // Accumulate scores for each category across ALL games (matching main page logic)
+  const catAccum = new Map<string, { sumWifey: number; sumHubby: number; count: number }>();
+
+  allGames.forEach((g) => {
+    Object.keys(g.players.wifey).forEach((cat) => {
+      if (!catAccum.has(cat)) {
+        catAccum.set(cat, { sumWifey: 0, sumHubby: 0, count: 0 });
+      }
+      const acc = catAccum.get(cat)!;
+      acc.sumWifey += g.players.wifey[cat] ?? 0;
+      acc.sumHubby += g.players.hubby[cat] ?? 0;
+      acc.count += 1;
+    });
+  });
+
+  // Calculate per-category averages
+  const wifeyByCategory: Record<string, number> = {};
+  const hubbyByCategory: Record<string, number> = {};
+
+  categories.forEach((category) => {
+    const acc = catAccum.get(category);
+    if (acc) {
+      wifeyByCategory[category] = acc.count > 0 ? acc.sumWifey / acc.count : 0;
+      hubbyByCategory[category] = acc.count > 0 ? acc.sumHubby / acc.count : 0;
+    } else {
+      wifeyByCategory[category] = 0;
+      hubbyByCategory[category] = 0;
+    }
+  });
+
+  // Calculate overall averages (average of the per-category averages)
+  const wifeyValues = categories.map((cat) => wifeyByCategory[cat]);
+  const wifeyOverall =
+    wifeyValues.length > 0
+      ? wifeyValues.reduce((sum, avg) => sum + avg, 0) / wifeyValues.length
+      : 0;
+
+  const hubbyValues = categories.map((cat) => hubbyByCategory[cat]);
+  const hubbyOverall =
+    hubbyValues.length > 0
+      ? hubbyValues.reduce((sum, avg) => sum + avg, 0) / hubbyValues.length
+      : 0;
+
+  const result = { categories, wifeyByCategory, hubbyByCategory, wifeyOverall, hubbyOverall };
+
+  // Cache the result
+  categoryAverageCache.set(categorySignature, result);
+
+  return result;
 }

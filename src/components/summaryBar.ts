@@ -26,16 +26,20 @@ type Card = {
   best?: boolean;
   subBest?: boolean;
   labelItalic?: boolean;
+  gameId?: number | null;
 };
 
 function cardHtml(c: Card): string {
   const labelClass = `stat-card__label${c.labelItalic ? " stat-card__label--italic" : ""}`;
   const valueClass = `stat-card__value${c.best ? " stat-card__value--best" : ""}`;
   const subClass = `stat-card__sub${c.subBest ? " stat-card__sub--best" : ""}`;
+  const valueHtml = c.gameId
+    ? `<a href="/analysis/?game=${c.gameId}" class="stat-card__link" title="View game #${c.gameId}">${c.value}</a>`
+    : c.value;
   return `
     <div class="stat-card ${c.modifier}">
       <span class="${labelClass}">${c.label}</span>
-      <span class="${valueClass}">${c.value}</span>
+      <span class="${valueClass}">${valueHtml}</span>
       ${c.sub !== undefined ? `<span class="${subClass}">${c.sub}</span>` : ""}
     </div>`;
 }
@@ -152,23 +156,23 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   const hubbyPeakMarginBest  = maxCumulativeMarginHubby >= maxCumulativeMarginWifey;
 
   const wifeyRecords: Card[] = [
-    { label: recordLabels[0], value: String(maxTotalWifey), modifier: "stat-card--wifey", best: wifeyMaxScoreBest },
-    { label: recordLabels[1], value: String(maxMarginWifey), modifier: "stat-card--wifey", best: wifeyMaxMarginBest },
-    { label: recordLabels[2], value: String(minWinningTotalWifey || "—"), modifier: "stat-card--wifey", best: wifeyMinWinBest },
+    { label: recordLabels[0], value: String(maxTotalWifey), modifier: "stat-card--wifey", best: wifeyMaxScoreBest, gameId: tally.maxTotalWifeyGameId },
+    { label: recordLabels[1], value: String(maxMarginWifey), modifier: "stat-card--wifey", best: wifeyMaxMarginBest, gameId: tally.maxMarginWifeyGameId },
+    { label: recordLabels[2], value: String(minWinningTotalWifey || "—"), modifier: "stat-card--wifey", best: wifeyMinWinBest, gameId: minWinningTotalWifey !== Infinity ? tally.minWinningTotalWifeyGameId : null },
     { label: recordLabels[3], value: fmt2(avgOverallWifey), modifier: "stat-card--wifey", best: wifeyAvgScoreBest },
     { label: recordLabels[4], value: fmt2(avgMarginWifey), modifier: "stat-card--wifey", best: wifeyAvgMarginBest },
-    { label: recordLabels[5], value: streakLabel(longestStreakWifey.length), modifier: "stat-card--wifey", best: wifeyStreakBest },
+    { label: recordLabels[5], value: streakLabel(longestStreakWifey.length), modifier: "stat-card--wifey", best: wifeyStreakBest, gameId: tally.longestStreakWifeyLastGameId },
     { label: recordLabels[6], value: String(maxCumulativeWinsWifey), modifier: "stat-card--wifey", best: wifeyPeakWinsBest },
     { label: recordLabels[7], value: String(maxCumulativeMarginWifey), modifier: "stat-card--wifey", best: wifeyPeakMarginBest },
   ];
 
   const hubbyRecords: Card[] = [
-    { label: recordLabels[0], value: String(maxTotalHubby), modifier: "stat-card--hubby", best: hubbyMaxScoreBest },
-    { label: recordLabels[1], value: String(maxMarginHubby), modifier: "stat-card--hubby", best: hubbyMaxMarginBest },
-    { label: recordLabels[2], value: String(minWinningTotalHubby || "—"), modifier: "stat-card--hubby", best: hubbyMinWinBest },
+    { label: recordLabels[0], value: String(maxTotalHubby), modifier: "stat-card--hubby", best: hubbyMaxScoreBest, gameId: tally.maxTotalHubbyGameId },
+    { label: recordLabels[1], value: String(maxMarginHubby), modifier: "stat-card--hubby", best: hubbyMaxMarginBest, gameId: tally.maxMarginHubbyGameId },
+    { label: recordLabels[2], value: String(minWinningTotalHubby || "—"), modifier: "stat-card--hubby", best: hubbyMinWinBest, gameId: minWinningTotalHubby !== Infinity ? tally.minWinningTotalHubbyGameId : null },
     { label: recordLabels[3], value: fmt2(avgOverallHubby), modifier: "stat-card--hubby", best: hubbyAvgScoreBest },
     { label: recordLabels[4], value: fmt2(avgMarginHubby), modifier: "stat-card--hubby", best: hubbyAvgMarginBest },
-    { label: recordLabels[5], value: streakLabel(longestStreakHubby.length), modifier: "stat-card--hubby", best: hubbyStreakBest },
+    { label: recordLabels[5], value: streakLabel(longestStreakHubby.length), modifier: "stat-card--hubby", best: hubbyStreakBest, gameId: tally.longestStreakHubbyLastGameId },
     { label: recordLabels[6], value: String(maxCumulativeWinsHubby), modifier: "stat-card--hubby", best: hubbyPeakWinsBest },
     { label: recordLabels[7], value: String(maxCumulativeMarginHubby), modifier: "stat-card--hubby", best: hubbyPeakMarginBest },
   ];
