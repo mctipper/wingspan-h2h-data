@@ -536,6 +536,20 @@ tr.row--draw:hover             { background: rgba(136, 136, 136, 0.14); }
 
   .summary-row--current .stat-card {
     width: 100%;
+    padding: 0.75rem 1.5rem;
+    min-height: 100px;
+  }
+
+  .summary-row--current .stat-card__value {
+    font-size: 1.75rem;
+  }
+
+  /* Ensure card labels are visible and shrink text on mobile */
+  .stat-card__label {
+    font-size: 0.62rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 
   /* Row label (used on Current row) goes horizontal above */
