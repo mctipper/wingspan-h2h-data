@@ -10,10 +10,9 @@
     "skipLibCheck": true,
     "lib": ["ES2020", "DOM"],
     "types": ["vite/client"],
-    "baseUrl": ".",
     "paths": {
-      "@admin/*": ["src/admin/*"],
-      "@/*": ["src/*"]
+      "@admin/*": ["./src/admin/*"],
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]
