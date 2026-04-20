@@ -111,10 +111,14 @@ export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void 
         y: {
           beginAtZero: true,
           ticks: {
+            color: COLOURS.chartText,
+            font: { size: 11 },
             callback(value) {
               return Math.abs(Number(value));
             },
           },
+          grid: { color: COLOURS.chartGrid },
+          title: { display: true, text: "← Hubby   Streaks   Wifey →", color: COLOURS.chartText, font: { size: 11 } },
         },
       },
     },
