@@ -28,18 +28,22 @@ type Card = {
   subBest?: boolean;
   labelItalic?: boolean;
   gameId?: number | null;
+  tooltip?: string;
 };
 
 function cardHtml(c: Card): string {
-  const labelClass = `stat-card__label${c.labelItalic ? " stat-card__label--italic" : ""}`;
+  const labelClass = `stat-card__label${c.labelItalic ? " stat-card__label--italic" : ""}${c.tooltip ? " stat-card__label--tooltip" : ""}`;
   const valueClass = `stat-card__value${c.best ? " stat-card__value--best" : ""}`;
   const subClass = `stat-card__sub${c.subBest ? " stat-card__sub--best" : ""}`;
   const valueHtml = c.gameId
     ? `<a href="${getAnalysisUrl(c.gameId)}" class="stat-card__link" title="View game #${c.gameId}">${c.value}</a>`
     : c.value;
+  const labelHtml = c.tooltip
+    ? `<span class="${labelClass}" title="${c.tooltip}">${c.label}</span>`
+    : `<span class="${labelClass}">${c.label}</span>`;
   return `
     <div class="stat-card ${c.modifier}">
-      <span class="${labelClass}">${c.label}</span>
+      ${labelHtml}
       <span class="${valueClass}">${valueHtml}</span>
       ${c.sub !== undefined ? `<span class="${subClass}">${c.sub}</span>` : ""}
     </div>`;
@@ -126,6 +130,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
       value: String(perfectGames.wifey + perfectGames.hubby),
       sub: perfectGames.wifey > perfectGames.hubby ? `Wifey ${perfectGames.wifey}*` : perfectGames.hubby > perfectGames.wifey ? `Hubby ${perfectGames.hubby}*` : undefined,
       modifier: "stat-card--neutral",
+      tooltip: "Games where a player won every single category",
     },
     {
       label: "Current Streak",

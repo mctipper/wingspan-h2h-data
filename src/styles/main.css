@@ -186,6 +186,12 @@ main {
   font-style: italic;
 }
 
+.stat-card__label--tooltip {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: help;
+}
+
 .stat-card__value {
   font-size: 1.5rem;
   font-weight: 700;
