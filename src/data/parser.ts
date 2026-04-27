@@ -153,13 +153,19 @@ export function buildTally(results: GameResult[]): Tally {
     for (const cat of categories) {
       let acc = catAccum.get(cat.category);
       if (!acc) {
-        acc = { sumWifey: 0, sumHubby: 0, maxWifey: 0, maxHubby: 0, count: 0 };
+        acc = { sumWifey: 0, sumHubby: 0, maxWifey: 0, maxHubby: 0, count: 0, maxWifeyGameId: null, maxHubbyGameId: null };
         catAccum.set(cat.category, acc);
       }
       acc.sumWifey += cat.wifey;
       acc.sumHubby += cat.hubby;
-      if (cat.wifey > acc.maxWifey) acc.maxWifey = cat.wifey;
-      if (cat.hubby > acc.maxHubby) acc.maxHubby = cat.hubby;
+      if (cat.wifey > acc.maxWifey) {
+        acc.maxWifey = cat.wifey;
+        acc.maxWifeyGameId = gameId;
+      }
+      if (cat.hubby > acc.maxHubby) {
+        acc.maxHubby = cat.hubby;
+        acc.maxHubbyGameId = gameId;
+      }
       acc.count++;
     }
 
@@ -267,7 +273,7 @@ export function buildTally(results: GameResult[]): Tally {
 
   const maxScoreByCategory: CategoryStat[] = [overallMaxStat, ...allCategories.map((cat) => {
     const acc = catAccum.get(cat)!;
-    return { category: cat, wifey: acc.maxWifey, hubby: acc.maxHubby };
+    return { category: cat, wifey: acc.maxWifey, hubby: acc.maxHubby, maxWifeyGameId: acc.maxWifeyGameId, maxHubbyGameId: acc.maxHubbyGameId };
   })];
 
   const avgScoreByCategory: CategoryStat[] = [overallAvgStat, ...allCategories.map((cat) => {

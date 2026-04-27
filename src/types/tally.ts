@@ -32,6 +32,8 @@ export interface CategoryStat {
   category: string;
   wifey: number;
   hubby: number;
+  maxWifeyGameId?: number | null;
+  maxHubbyGameId?: number | null;
 }
 
 export interface Tally {

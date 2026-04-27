@@ -203,6 +203,11 @@ main {
   text-decoration: underline;
 }
 
+.stat-card__sub-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .stat-card--wifey .stat-card__value {
   color: var(--colour-wifey);
 }

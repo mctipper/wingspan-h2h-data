@@ -28,6 +28,7 @@ type Card = {
   subBest?: boolean;
   labelItalic?: boolean;
   gameId?: number | null;
+  subGameId?: number | null;
   tooltip?: string;
 };
 
@@ -41,11 +42,16 @@ function cardHtml(c: Card): string {
   const labelHtml = c.tooltip
     ? `<span class="${labelClass}" title="${c.tooltip}">${c.label}</span>`
     : `<span class="${labelClass}">${c.label}</span>`;
+  const subHtml = c.sub !== undefined
+    ? c.subGameId
+      ? `<a href="${getAnalysisUrl(c.subGameId)}" class="stat-card__link stat-card__sub-link" title="View game #${c.subGameId}">${c.sub}</a>`
+      : c.sub
+    : "";
   return `
     <div class="stat-card ${c.modifier}">
       ${labelHtml}
       <span class="${valueClass}">${valueHtml}</span>
-      ${c.sub !== undefined ? `<span class="${subClass}">${c.sub}</span>` : ""}
+      ${c.sub !== undefined ? `<span class="${subClass}">${subHtml}</span>` : ""}
     </div>`;
 }
 
@@ -197,6 +203,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
     opponentAvg: number,
     opponentMax: number,
     modifier: string,
+    maxGameId?: number | null,
   ): Card {
     const avgBest = avgValue >= opponentAvg;
     const maxBest = maxValue >= opponentMax;
@@ -208,6 +215,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
       subBest: false, // asterisk is inline in sub text instead
       modifier,
       labelItalic: !universalCategories.has(label),
+      subGameId: maxGameId,
     };
   }
 
@@ -220,6 +228,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
       s.hubby,
       maxS?.hubby ?? 0,
       "stat-card--wifey",
+      maxS?.maxWifeyGameId,
     );
   });
 
@@ -232,6 +241,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
       s.wifey,
       maxS?.wifey ?? 0,
       "stat-card--hubby",
+      maxS?.maxHubbyGameId,
     );
   });
 
