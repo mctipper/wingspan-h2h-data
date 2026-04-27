@@ -103,8 +103,8 @@ export function buildTally(results: GameResult[]): Tally {
   let minWinningTotalHubby = Infinity;
   let minWinningTotalHubbyGameId: number | null = null;
 
-  // Per-category accumulators: category -> { sumWifey, sumHubby, maxWifey, maxHubby, count }
-  const catAccum = new Map<string, { sumWifey: number; sumHubby: number; maxWifey: number; maxHubby: number; count: number }>();
+  // Per-category accumulators: category -> { sumWifey, sumHubby, maxWifey, maxHubby, count, maxWifeyGameId, maxHubbyGameId }
+  const catAccum = new Map<string, { sumWifey: number; sumHubby: number; maxWifey: number; maxHubby: number; count: number; maxWifeyGameId?: number | null; maxHubbyGameId?: number | null }>();
 
   let currentStreak: Streak = { player: null, length: 0 };
   let longestStreakWifey: Streak = { player: "wifey", length: 0 };
