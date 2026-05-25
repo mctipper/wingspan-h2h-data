@@ -108,6 +108,10 @@ export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void 
         },
       },
       scales: {
+        x: {
+          ticks: { display: false },
+          title: { display: true, text: "Game #", color: COLOURS.chartText, font: { size: 11 } },
+        },
         y: {
           beginAtZero: true,
           ticks: {

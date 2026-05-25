@@ -90,11 +90,11 @@ export function renderMarginChart(tally: Tally, el: HTMLCanvasElement): void {
       scales: {
         x: {
           ticks: { display: false },
-          grid: { color: COLOURS.chartGrid },
           title: { display: true, text: "Game #", color: COLOURS.chartText, font: { size: 11 } },
         },
         y: {
           ticks: {
+            stepSize: 100,
             color: COLOURS.chartText,
             font: { size: 11 },
             callback: (v) => (Number(v) > 0 ? `+${Number(v)}` : String(v)),
