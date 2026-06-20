@@ -95,6 +95,8 @@ export function renderGameForm(
   }
 
   function renderRows(container: HTMLElement): void {
+    let tabIndex: number = 1;
+
     container.innerHTML = rows
       .map(
         (row, i) => `
@@ -109,10 +111,10 @@ export function renderGameForm(
             </select>
           </div>
           <div>
-            <input type="number" class="cat-wifey" data-idx="${i}" value="${row.wifey === "" ? "" : row.wifey}" placeholder="0" min="0" />
+            <input type="number" class="cat-wifey" ${i === 0 ? "autofocus" : ""} tabindex="${++tabIndex}" data-idx="${i}" value="${row.wifey === "" ? "" : row.wifey}" placeholder="0" min="0" />
           </div>
           <div>
-            <input type="number" class="cat-hubby" data-idx="${i}" value="${row.hubby === "" ? "" : row.hubby}" placeholder="0" min="0" />
+            <input type="number" class="cat-hubby" tabindex="${++tabIndex}" data-idx="${i}" value="${row.hubby === "" ? "" : row.hubby}" placeholder="0" min="0" />
           </div>
           <button type="button" class="btn btn--danger btn--icon remove-row" data-idx="${i}" ${rows.length <= 1 ? "disabled" : ""} title="Remove">×</button>
         </div>`
