@@ -11,7 +11,10 @@ import { COLOURS } from "@/styles/design";
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
-export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void {
+export function renderStreakBarChart(
+  tally: Tally,
+  el: HTMLCanvasElement,
+): void {
   const { runningHistory } = tally;
 
   // Extract individual streaks by detecting when the streak changes
@@ -22,6 +25,7 @@ export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void 
 
   const streaks: StreakData[] = [];
   let lastStreak = runningHistory[0]?.runningStreak;
+  let maxStreakLength = 0;
 
   for (let i = 0; i < runningHistory.length; i++) {
     const entry = runningHistory[i];
@@ -38,8 +42,8 @@ export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void 
 
       // Check if streak ended (player changed or went to null) or streak is longer but different player
       if (
-        (streak.player !== prevStreak.player || 
-         (streak.player === null && prevStreak.player !== null)) &&
+        (streak.player !== prevStreak.player ||
+          (streak.player === null && prevStreak.player !== null)) &&
         prevStreak.player
       ) {
         // Record the completed streak
@@ -47,6 +51,11 @@ export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void 
           player: prevStreak.player,
           length: prevStreak.length,
         });
+      }
+
+      // Check if streak is longer than current max
+      if (prevStreak.length > maxStreakLength) {
+        maxStreakLength = prevStreak.length;
       }
     }
   }
@@ -64,8 +73,16 @@ export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void 
 
   // Convert to bar chart data (+ve for wifey, -ve for hubby)
   const labels = streaks.map((_, i) => `${i + 1}`);
-  const data = streaks.map((s) => (s.player === "wifey" ? s.length : -s.length));
-  const colors = streaks.map((s) => (s.player === "wifey" ? COLOURS.wifey : COLOURS.hubby));
+  const data = streaks.map((s) =>
+    s.player === "wifey" ? s.length : -s.length,
+  );
+  const colors = streaks.map((s) =>
+    s.player === "wifey" ? COLOURS.wifey : COLOURS.hubby,
+  );
+
+  // Round to the "next whole 5", equal max/min
+  const yAxisMax = Math.ceil(maxStreakLength / 5) * 5;
+  const yAxisMin = -yAxisMax;
 
   new Chart(el, {
     type: "bar",
@@ -110,10 +127,17 @@ export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void 
       scales: {
         x: {
           ticks: { display: false },
-          title: { display: true, text: "Game #", color: COLOURS.chartText, font: { size: 11 } },
+          title: {
+            display: true,
+            text: "Game #",
+            color: COLOURS.chartText,
+            font: { size: 11 },
+          },
         },
         y: {
           beginAtZero: true,
+          max: yAxisMax,
+          min: yAxisMin,
           ticks: {
             color: COLOURS.chartText,
             font: { size: 11 },
@@ -122,7 +146,12 @@ export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void 
             },
           },
           grid: { color: COLOURS.chartGrid },
-          title: { display: true, text: "← Hubby   Streaks   Wifey →", color: COLOURS.chartText, font: { size: 11 } },
+          title: {
+            display: true,
+            text: "← Hubby   Streaks   Wifey →",
+            color: COLOURS.chartText,
+            font: { size: 11 },
+          },
         },
       },
     },

@@ -11,7 +11,15 @@ import {
 import type { Tally } from "@/types/tally";
 import { COLOURS } from "@/styles/design";
 
-Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Filler, Tooltip);
+Chart.register(
+  LineController,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Filler,
+  Tooltip,
+);
 
 export function renderMarginChart(tally: Tally, el: HTMLCanvasElement): void {
   const { runningHistory } = tally;
@@ -20,10 +28,22 @@ export function renderMarginChart(tally: Tally, el: HTMLCanvasElement): void {
   const data = runningHistory.map((e) => e.cumulativeMargin);
   // Per-game signed margin (positive = wifey won, negative = hubby won)
   const perGameMargin = runningHistory.map((e, i) =>
-    i === 0 ? e.cumulativeMargin : e.cumulativeMargin - runningHistory[i - 1]!.cumulativeMargin
+    i === 0
+      ? e.cumulativeMargin
+      : e.cumulativeMargin - runningHistory[i - 1]!.cumulativeMargin,
   );
 
-  const pointColors = data.map((v) => (v > 0 ? COLOURS.wifey : v < 0 ? COLOURS.hubby : COLOURS.draw));
+  const pointColors = data.map((v) =>
+    v > 0 ? COLOURS.wifey : v < 0 ? COLOURS.hubby : COLOURS.draw,
+  );
+
+  // Max/min value for axis
+  const maxDiff = Math.max(...data, 0);
+  const minDiff = Math.min(...data, 0);
+
+  // Round to the "+5 next whole 10"
+  const yAxisMax = Math.ceil((maxDiff + 100) / 100) * 100;
+  const yAxisMin = Math.floor((minDiff - 100) / 100) * 100;
 
   new Chart(el, {
     type: "line",
@@ -38,7 +58,12 @@ export function renderMarginChart(tally: Tally, el: HTMLCanvasElement): void {
             const chart = ctx.chart;
             const { ctx: c, chartArea } = chart;
             if (!chartArea) return "transparent";
-            const grad = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            const grad = c.createLinearGradient(
+              0,
+              chartArea.top,
+              0,
+              chartArea.bottom,
+            );
             grad.addColorStop(0, COLOURS.wifey + "55");
             grad.addColorStop(0.5, "transparent");
             grad.addColorStop(1, COLOURS.hubby + "55");
@@ -77,10 +102,12 @@ export function renderMarginChart(tally: Tally, el: HTMLCanvasElement): void {
               const gm = perGameMargin[i] ?? 0;
               const lines: string[] = [];
               if (v > 0) lines.push(`Wifey ahead by ${v} pts cumulative`);
-              else if (v < 0) lines.push(`Hubby ahead by ${Math.abs(v)} pts cumulative`);
+              else if (v < 0)
+                lines.push(`Hubby ahead by ${Math.abs(v)} pts cumulative`);
               else lines.push("Tied cumulative");
               if (gm > 0) lines.push(`Wifey won by ${gm} pts this game`);
-              else if (gm < 0) lines.push(`Hubby won by ${Math.abs(gm)} pts this game`);
+              else if (gm < 0)
+                lines.push(`Hubby won by ${Math.abs(gm)} pts this game`);
               else lines.push("Draw this game");
               return lines;
             },
@@ -90,9 +117,16 @@ export function renderMarginChart(tally: Tally, el: HTMLCanvasElement): void {
       scales: {
         x: {
           ticks: { display: false },
-          title: { display: true, text: "Game #", color: COLOURS.chartText, font: { size: 11 } },
+          title: {
+            display: true,
+            text: "Game #",
+            color: COLOURS.chartText,
+            font: { size: 11 },
+          },
         },
         y: {
+          max: yAxisMax,
+          min: yAxisMin,
           ticks: {
             stepSize: 100,
             color: COLOURS.chartText,
@@ -100,7 +134,12 @@ export function renderMarginChart(tally: Tally, el: HTMLCanvasElement): void {
             callback: (v) => (Number(v) > 0 ? `+${Number(v)}` : String(v)),
           },
           grid: { color: COLOURS.chartGrid },
-          title: { display: true, text: "← Hubby   Margin   Wifey →", color: COLOURS.chartText, font: { size: 11 } },
+          title: {
+            display: true,
+            text: "← Hubby   Margin   Wifey →",
+            color: COLOURS.chartText,
+            font: { size: 11 },
+          },
         },
       },
     },

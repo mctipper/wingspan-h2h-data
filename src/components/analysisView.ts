@@ -12,7 +12,14 @@ import { parseGame, calculateCategoryAverages } from "@/data/parser";
 import { COLOURS } from "@/styles/design";
 import type { RawGame, RawGameData } from "@/types/raw";
 
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+Chart.register(
+  BarController,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+);
 
 export interface AnalysisNav {
   prev: string | null;
@@ -23,15 +30,20 @@ export function renderAnalysisView(
   el: HTMLElement,
   game: RawGame,
   nav?: AnalysisNav,
-  allGames?: RawGameData
+  allGames?: RawGameData,
 ): void {
   const result = parseGame(game);
-  const { categories, totalWifey, totalHubby, winner, tiebreaker, margin } = result;
+  const { categories, totalWifey, totalHubby, winner, tiebreaker, margin } =
+    result;
 
   const winnerText =
     winner === "draw" ? "Draw" : winner === "wifey" ? "Wifey" : "Hubby";
   const winnerClass =
-    winner === "draw" ? "winner--draw" : winner === "wifey" ? "winner--wifey" : "winner--hubby";
+    winner === "draw"
+      ? "winner--draw"
+      : winner === "wifey"
+        ? "winner--wifey"
+        : "winner--hubby";
   const marginText =
     winner === "draw" || tiebreaker ? "0" : String(Math.abs(margin));
 
@@ -41,11 +53,19 @@ export function renderAnalysisView(
   const nextBtn = nav?.next
     ? `<a href="${nav.next}" class="analysis-nav-btn" title="Next game">&#8250;</a>`
     : `<span class="analysis-nav-btn analysis-nav-btn--disabled">&#8250;</span>`;
-  const totalWinnerClass = 
-    winner === "draw" ? "winner--draw" : winner === "wifey" ? "winner--wifey" : "winner--hubby";
-  const totalWinnerRowClass = 
-    winner === "draw" ? "row--draw" : winner === "wifey" ? "row--wifey" : "row--hubby";
-  const totalWinnerText = 
+  const totalWinnerClass =
+    winner === "draw"
+      ? "winner--draw"
+      : winner === "wifey"
+        ? "winner--wifey"
+        : "winner--hubby";
+  const totalWinnerRowClass =
+    winner === "draw"
+      ? "row--draw"
+      : winner === "wifey"
+        ? "row--wifey"
+        : "row--hubby";
+  const totalWinnerText =
     winner === "draw" ? "Draw" : winner === "wifey" ? "Wifey" : "Hubby";
 
   // Calculate per-category averages from cross-game category analysis (needed for table and chart)
@@ -65,24 +85,39 @@ export function renderAnalysisView(
     });
   }
 
-  const tableRows = categories
-    .map((c) => {
-      const catWinnerClass =
-        c.winner === "draw" ? "winner--draw" : c.winner === "wifey" ? "winner--wifey" : "winner--hubby";
-      const catWinnerRowClass = 
-        c.winner === "draw" ? "row--draw" : c.winner === "wifey" ? "row--wifey" : "row--hubby";
-      const catWinnerText =
-        c.winner === "draw" ? "Draw" : c.winner === "wifey" ? "Wifey" : "Hubby";
-      
-      // Calculate difference from average for each player
-      const wifeyAvg = wifeyByCategory[c.category] ?? 0;
-      const hubbyAvg = hubbyByCategory[c.category] ?? 0;
-      const wifeyDiff = c.wifey - wifeyAvg;
-      const hubbyDiff = c.hubby - hubbyAvg;
-      const wifeyDiffStr = wifeyDiff >= 0 ? `+${wifeyDiff.toFixed(1)}` : wifeyDiff.toFixed(1);
-      const hubbyDiffStr = hubbyDiff >= 0 ? `+${hubbyDiff.toFixed(1)}` : hubbyDiff.toFixed(1);
-      
-      return `
+  const tableRows =
+    categories
+      .map((c) => {
+        const catWinnerClass =
+          c.winner === "draw"
+            ? "winner--draw"
+            : c.winner === "wifey"
+              ? "winner--wifey"
+              : "winner--hubby";
+        const catWinnerRowClass =
+          c.winner === "draw"
+            ? "row--draw"
+            : c.winner === "wifey"
+              ? "row--wifey"
+              : "row--hubby";
+        const catWinnerText =
+          c.winner === "draw"
+            ? "Draw"
+            : c.winner === "wifey"
+              ? "Wifey"
+              : "Hubby";
+
+        // Calculate difference from average for each player
+        const wifeyAvg = wifeyByCategory[c.category] ?? 0;
+        const hubbyAvg = hubbyByCategory[c.category] ?? 0;
+        const wifeyDiff = c.wifey - wifeyAvg;
+        const hubbyDiff = c.hubby - hubbyAvg;
+        const wifeyDiffStr =
+          wifeyDiff >= 0 ? `+${wifeyDiff.toFixed(1)}` : wifeyDiff.toFixed(1);
+        const hubbyDiffStr =
+          hubbyDiff >= 0 ? `+${hubbyDiff.toFixed(1)}` : hubbyDiff.toFixed(1);
+
+        return `
         <tr class=${catWinnerRowClass}>
           <td>${c.category}</td>
           <td class="col-right col-wifey">${c.wifey}<br><span class="category-diff">(${wifeyDiffStr})</span></td>
@@ -90,16 +125,28 @@ export function renderAnalysisView(
           <td class="col-right ${catWinnerClass}">${catWinnerText}</td>
           <td class="col-right ${catWinnerClass}">${c.margin}</td>
         </tr>`;
-    })
-    .join("") +
+      })
+      .join("") +
     // totals
     (() => {
-      const avgTotalWifey = categories.reduce((sum, c) => sum + (wifeyByCategory[c.category] ?? 0), 0);
-      const avgTotalHubby = categories.reduce((sum, c) => sum + (hubbyByCategory[c.category] ?? 0), 0);
+      const avgTotalWifey = categories.reduce(
+        (sum, c) => sum + (wifeyByCategory[c.category] ?? 0),
+        0,
+      );
+      const avgTotalHubby = categories.reduce(
+        (sum, c) => sum + (hubbyByCategory[c.category] ?? 0),
+        0,
+      );
       const wifeyTotalDiff = totalWifey - avgTotalWifey;
       const hubbyTotalDiff = totalHubby - avgTotalHubby;
-      const wifeyTotalDiffStr = wifeyTotalDiff >= 0 ? `+${wifeyTotalDiff.toFixed(1)}` : wifeyTotalDiff.toFixed(1);
-      const hubbyTotalDiffStr = hubbyTotalDiff >= 0 ? `+${hubbyTotalDiff.toFixed(1)}` : hubbyTotalDiff.toFixed(1);
+      const wifeyTotalDiffStr =
+        wifeyTotalDiff >= 0
+          ? `+${wifeyTotalDiff.toFixed(1)}`
+          : wifeyTotalDiff.toFixed(1);
+      const hubbyTotalDiffStr =
+        hubbyTotalDiff >= 0
+          ? `+${hubbyTotalDiff.toFixed(1)}`
+          : hubbyTotalDiff.toFixed(1);
       return `<tr class=table-row--total ${totalWinnerRowClass}>
         <td><strong><i>TOTAL</i></strong></td>
         <td class="col-right col-wifey">${totalWifey}<br><span class="category-diff">(${wifeyTotalDiffStr})</span></td>
@@ -107,9 +154,7 @@ export function renderAnalysisView(
         <td class="col-right ${totalWinnerClass}">${totalWinnerText}</td>
         <td class="col-right ${totalWinnerClass}">${Math.abs(margin)}</td>
       </tr>`;
-    })()    
-    ;
-
+    })();
   el.innerHTML = `
     <div class="analysis-header">
       <div class="analysis-game-nav">
@@ -153,7 +198,7 @@ export function renderAnalysisView(
   chartWrap.style.height = `${categories.length * 60 + 60}px`;
 
   const canvas = document.getElementById(
-    `analysis-chart-${game.game_id}`
+    `analysis-chart-${game.game_id}`,
   ) as HTMLCanvasElement | null;
   if (!canvas) return;
 
@@ -206,8 +251,8 @@ export function renderAnalysisView(
 
           const avg =
             datasetIndex === 0
-              ? wifeyByCategory[categoryName] ?? 0
-              : hubbyByCategory[categoryName] ?? 0;
+              ? (wifeyByCategory[categoryName] ?? 0)
+              : (hubbyByCategory[categoryName] ?? 0);
 
           const xPos = xScale.getPixelForValue(avg);
 
@@ -227,6 +272,22 @@ export function renderAnalysisView(
       });
     },
   };
+
+  // Find the absolute highest value across all actual scores and averages
+  const wifeyAverages = categories.map((c) => wifeyByCategory[c.category] ?? 0);
+  const hubbyAverages = categories.map((c) => hubbyByCategory[c.category] ?? 0);
+
+  const maxActualValue = Math.max(...wifeyValues, ...hubbyValues);
+  const maxAverageValue = Math.max(...wifeyAverages, ...hubbyAverages);
+
+  // Basic max for consistency to ensure the chart always has a defined upper bound
+  const basicMax: number = 60;
+
+  // Determine if the highest average is greater than the highest actual score
+  const calculatedMax = Math.max(maxActualValue, maxAverageValue);
+
+  // Padding to allow slight overshoot for neateness (exclude basicMax because round numbers)
+  const xAxisMax = Math.max(basicMax, Math.ceil(calculatedMax * 1.05));
 
   new Chart(canvas, {
     type: "bar",
@@ -259,6 +320,7 @@ export function renderAnalysisView(
       scales: {
         x: {
           beginAtZero: true,
+          max: xAxisMax,
           grid: { color: COLOURS.chartGrid },
           ticks: { color: COLOURS.chartText, font: { size: 11 } },
         },
@@ -279,7 +341,8 @@ export function renderAnalysisView(
             afterLabel(context) {
               const categoryName = categories[context.dataIndex]?.category;
               const value = context.parsed.x;
-              if (!categoryName || value === null || value === undefined) return "";
+              if (!categoryName || value === null || value === undefined)
+                return "";
 
               if (context.datasetIndex === 0) {
                 // Wifey actual vs avg

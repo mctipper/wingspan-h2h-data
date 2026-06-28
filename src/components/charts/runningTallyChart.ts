@@ -11,16 +11,39 @@ import {
 import type { Tally } from "@/types/tally";
 import { COLOURS } from "@/styles/design";
 
-Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Filler, Tooltip);
+Chart.register(
+  LineController,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Filler,
+  Tooltip,
+);
 
-export function renderRunningTallyChart(tally: Tally, el: HTMLCanvasElement): void {
+export function renderRunningTallyChart(
+  tally: Tally,
+  el: HTMLCanvasElement,
+): void {
   const { runningHistory } = tally;
 
   const labels = runningHistory.map((e) => String(e.gameId));
-  const data = runningHistory.map((e) => e.cumulativeWinsWifey - e.cumulativeWinsHubby);
+  const data = runningHistory.map(
+    (e) => e.cumulativeWinsWifey - e.cumulativeWinsHubby,
+  );
+
+  // Max/min value for axis
+  const maxDiff = Math.max(...data, 0);
+  const minDiff = Math.min(...data, 0);
+
+  // Round to the "+5 next whole 10"
+  const yAxisMax = Math.ceil((maxDiff + 5) / 10) * 10;
+  const yAxisMin = Math.floor((minDiff - 5) / 10) * 10;
 
   // Point colour by who's ahead at that point
-  const pointColors = data.map((v) => (v > 0 ? COLOURS.wifey : v < 0 ? COLOURS.hubby : COLOURS.draw));
+  const pointColors = data.map((v) =>
+    v > 0 ? COLOURS.wifey : v < 0 ? COLOURS.hubby : COLOURS.draw,
+  );
 
   new Chart(el, {
     type: "line",
@@ -35,7 +58,12 @@ export function renderRunningTallyChart(tally: Tally, el: HTMLCanvasElement): vo
             const chart = ctx.chart;
             const { ctx: c, chartArea } = chart;
             if (!chartArea) return "transparent";
-            const grad = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            const grad = c.createLinearGradient(
+              0,
+              chartArea.top,
+              0,
+              chartArea.bottom,
+            );
             grad.addColorStop(0, COLOURS.wifey + "55");
             grad.addColorStop(0.5, "transparent");
             grad.addColorStop(1, COLOURS.hubby + "55");
@@ -80,9 +108,16 @@ export function renderRunningTallyChart(tally: Tally, el: HTMLCanvasElement): vo
       scales: {
         x: {
           ticks: { display: false },
-          title: { display: true, text: "Game #", color: COLOURS.chartText, font: { size: 11 } },
+          title: {
+            display: true,
+            text: "Game #",
+            color: COLOURS.chartText,
+            font: { size: 11 },
+          },
         },
         y: {
+          max: yAxisMax,
+          min: yAxisMin,
           ticks: {
             color: COLOURS.chartText,
             font: { size: 11 },
@@ -90,7 +125,12 @@ export function renderRunningTallyChart(tally: Tally, el: HTMLCanvasElement): vo
             callback: (v) => (Number(v) > 0 ? `+${Number(v)}` : String(v)),
           },
           grid: { color: COLOURS.chartGrid },
-          title: { display: true, text: "← Hubby   Wins   Wifey →", color: COLOURS.chartText, font: { size: 11 } },
+          title: {
+            display: true,
+            text: "← Hubby   Wins   Wifey →",
+            color: COLOURS.chartText,
+            font: { size: 11 },
+          },
         },
       },
     },
