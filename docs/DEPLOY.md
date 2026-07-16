@@ -39,6 +39,14 @@ WantedBy=multi-user.target
 > sudo systemctl enable wingspan  
 > sudo systemctl start wingspan
 
+## Running
+
+public: <host>:5173/wingspan-h2h-data/
+admin: <host>:5174/wingspan-h2h-data/admin/
+
+"Public" is what is published to github pages, "Admin" allows data entry.  
+A duplicative "public" style page is also run on the admin port 5174 as a side-effect during dev time didnt want to spin up two services each time to compare. Cbf removing this its fine.  
+
 # Github Pages
 
 Configured to simply update via the gh-pages package

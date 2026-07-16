@@ -12,7 +12,11 @@ The `.nvmrc` instructs to use Node v20, and yeh makes use of `nvm`
 > nvm install  
 > nvm use  
 > npm install  
-> npm run dev
+
+Public
+> npm run dev  
+
+To get a view of just the 'public' site which is also what gets published to github pages.
 
 Admin 
 > npm run dev:admin  
