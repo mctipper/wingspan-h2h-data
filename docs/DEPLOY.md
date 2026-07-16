@@ -41,7 +41,7 @@ WantedBy=multi-user.target
 
 ## Running
 
-public: <host>:5173/wingspan-h2h-data/
+public: <host>:5173/wingspan-h2h-data/  
 admin: <host>:5174/wingspan-h2h-data/admin/
 
 "Public" is what is published to github pages, "Admin" allows data entry.  
