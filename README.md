@@ -7,7 +7,7 @@ Simple graphs and aggregations for wingspan games.
 
 ## Getting Started
 
-The `.nvmrc` instructs to use Node v20, and yeh makes use of `nvm` 
+The `.nvmrc` instructs to use Node v24, and yeh makes use of `nvm` 
 
 > nvm install  
 > nvm use  
@@ -29,10 +29,8 @@ Check out the [Deployment Instructions](docs/DEPLOY.md) for how to run this 'rem
 
 ## Github Pages
 
-Public page is deployed on Github pages to allow easy viewing of stats offline, but as its static there is no updating of said stats etc... purposefully.  Deployed via `gh-pages` package
+Public page is deployed on Github pages to allow easy viewing of stats offline, but as its static there is no updating of said stats etc... purposefully.  Deployed via simple deploy.yml workflow upon pushing to main.  
 
-> npm run deploy  
-  
 ## TODO
 
 * Probably should put some unit tests in here for some of the functions
