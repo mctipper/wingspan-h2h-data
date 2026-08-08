@@ -21,7 +21,8 @@ Set up a service to handle this
 ```bash
 [Unit]
 Description=Wingspan H2H Docker Compose
-After=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
 Requires=docker.service
 
 [Service]
@@ -29,6 +30,7 @@ WorkingDirectory=/home/<user>/wingspan-h2h-data
 ExecStart=/usr/bin/docker compose up --build
 ExecStop=/usr/bin/docker compose down
 Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
