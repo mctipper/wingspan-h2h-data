@@ -1,6 +1,6 @@
 :root {
   --colour-wifey: #4a90d9;
-  --colour-hubby: #e07b54;
+  --colour-hubby: #B3E6B5;
   --colour-draw: #888;
   --bg-primary: #1a1a2e;
   --bg-card: #16213e;
@@ -11,10 +11,10 @@
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 
   --row-wifey: rgba(74, 144, 217, 0.12);
-  --row-hubby: rgba(224, 123, 84, 0.12);
+  --row-hubby: rgba(179, 230, 181, 0.12);
   --row-tiebreaker-wifey: rgba(74, 144, 217, 0.06);
-  --row-tiebreaker-hubby: rgba(224, 123, 84, 0.06);
-  --row-draw: rgba(136, 136, 136, 0.08);
+  --row-tiebreaker-hubby: rgba(179, 230, 181, 0.06);
+  --row-draw: rgba(170, 170, 170, 0.1);
 }
 
 *,
@@ -353,10 +353,10 @@ tr.row--tiebreaker-wifey { background: var(--row-tiebreaker-wifey); }
 tr.row--tiebreaker-hubby { background: var(--row-tiebreaker-hubby); }
 tr.row--draw            { background: var(--row-draw); }
 tr.row--wifey:hover            { background: rgba(74, 144, 217, 0.2); }
-tr.row--hubby:hover            { background: rgba(224, 123, 84, 0.2); }
+tr.row--hubby:hover            { background: rgba(96, 224, 84, 0.2); }
 tr.row--tiebreaker-wifey:hover { background: rgba(74, 144, 217, 0.12); }
-tr.row--tiebreaker-hubby:hover { background: rgba(224, 123, 84, 0.12); }
-tr.row--draw:hover             { background: rgba(136, 136, 136, 0.14); }
+tr.row--tiebreaker-hubby:hover { background: rgba(179, 230, 181, 0.12); }
+tr.row--draw:hover             { background: rgba(170, 170, 170, 0.14); }
 
 .table-row--total td {
   border-top: 2px solid var(--text-secondary); 

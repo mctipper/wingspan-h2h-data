@@ -2,19 +2,19 @@
 
 export const COLOURS = {
   wifey: "#4a90d9",
-  hubby: "#e07b54",
+  hubby: "#B3E6B5",
   draw: "#888888",
   drawBg: "#555555",
 
   /** Semi-transparent fills for chart areas */
   wifeyFill: "#4a90d933",
-  hubbyFill: "#e07b5433",
+  hubbyFill: "#B3E6B533",
 
   /** Table row backgrounds */
   rowWifey: "rgba(74, 144, 217, 0.12)",
-  rowHubby: "rgba(224, 123, 84, 0.12)",
+  rowHubby: "rgba(179, 230, 181, 0.12)",
   rowTiebreakerWifey: "rgba(74, 144, 217, 0.06)",
-  rowTiebreakerHubby: "rgba(224, 123, 84, 0.06)",
+  rowTiebreakerHubby: "rgba(179, 230, 181, 0.06)",
   rowDraw: "rgba(136, 136, 136, 0.08)",
 
   /** Special category tick colours */
