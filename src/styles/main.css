@@ -1,20 +1,6 @@
 :root {
-  --colour-wifey: #4a90d9;
-  --colour-hubby: #B3E6B5;
-  --colour-draw: #888;
-  --bg-primary: #1a1a2e;
-  --bg-card: #16213e;
-  --border-colour: #2a2a4a;
-  --text-primary: #e8e8f0;
-  --text-secondary: #9999bb;
   --radius: 8px;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-
-  --row-wifey: rgba(74, 144, 217, 0.12);
-  --row-hubby: rgba(179, 230, 181, 0.12);
-  --row-tiebreaker-wifey: rgba(74, 144, 217, 0.06);
-  --row-tiebreaker-hubby: rgba(179, 230, 181, 0.06);
-  --row-draw: rgba(170, 170, 170, 0.1);
 }
 
 *,
@@ -30,11 +16,37 @@ html {
 }
 
 body {
-  background-color: var(--bg-primary);
+  background-color: var(--bg-primary, #1a1a2e);
   color: var(--text-primary);
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   line-height: 1.5;
   min-height: 100vh;
+}
+
+body.app-loading > header,
+body.app-loading > main,
+body.app-loading > #toast-container {
+  visibility: hidden;
+}
+
+#app-loading {
+  display: none;
+}
+
+body.app-loading #app-loading {
+  display: block;
+  min-height: 18rem;
+  margin: 2rem;
+  border: 1px solid var(--border-colour, #2a2a4a);
+  border-radius: var(--radius);
+  background: var(--bg-card, #16213e);
+  opacity: 0.7;
+  animation: skeleton-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes skeleton-pulse {
+  from { opacity: 0.45; }
+  to { opacity: 0.8; }
 }
 
 /* ── Layout ─────────────────────────────────────────────── */
@@ -352,11 +364,11 @@ tr.row--hubby           { background: var(--row-hubby); }
 tr.row--tiebreaker-wifey { background: var(--row-tiebreaker-wifey); }
 tr.row--tiebreaker-hubby { background: var(--row-tiebreaker-hubby); }
 tr.row--draw            { background: var(--row-draw); }
-tr.row--wifey:hover            { background: rgba(74, 144, 217, 0.2); }
-tr.row--hubby:hover            { background: rgba(96, 224, 84, 0.2); }
-tr.row--tiebreaker-wifey:hover { background: rgba(74, 144, 217, 0.12); }
-tr.row--tiebreaker-hubby:hover { background: rgba(179, 230, 181, 0.12); }
-tr.row--draw:hover             { background: rgba(170, 170, 170, 0.14); }
+tr.row--wifey:hover            { background: var(--row-wifey-hover); }
+tr.row--hubby:hover            { background: var(--row-hubby-hover); }
+tr.row--tiebreaker-wifey:hover { background: var(--row-tiebreaker-wifey-hover); }
+tr.row--tiebreaker-hubby:hover { background: var(--row-tiebreaker-hubby-hover); }
+tr.row--draw:hover             { background: var(--row-draw-hover); }
 
 .table-row--total td {
   border-top: 2px solid var(--text-secondary); 

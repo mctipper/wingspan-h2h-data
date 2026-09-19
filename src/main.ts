@@ -6,6 +6,9 @@ import { renderRunningTallyChart } from "@/components/charts/runningTallyChart";
 import { renderMarginChart } from "@/components/charts/marginChart";
 import { renderStreakBarChart } from "@/components/charts/streakBarChart";
 import { getAdminUrl } from "@/utils/urls";
+import { applyDesignTokens, markAppReady } from "@/styles/design";
+
+applyDesignTokens();
 
 if (import.meta.env.VITE_ADMIN_MODE === "true") {
   const header = document.querySelector("header");
@@ -29,3 +32,5 @@ if (gamesTableEl) renderGamesTable(results, tally.runningHistory, gamesTableEl);
 if (streaksEl instanceof HTMLCanvasElement) renderStreakBarChart(tally, streaksEl);
 if (runningTallyEl instanceof HTMLCanvasElement) renderRunningTallyChart(tally, runningTallyEl);
 if (marginEl instanceof HTMLCanvasElement) renderMarginChart(tally, marginEl);
+
+markAppReady();

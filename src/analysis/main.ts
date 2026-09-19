@@ -3,6 +3,9 @@ import rawGames from "@/assets/games.json";
 import { renderAnalysisView } from "@/components/analysisView";
 import { getMainUrl } from "@/utils/urls";
 import type { RawGameData } from "@/types/raw";
+import { applyDesignTokens, markAppReady } from "@/styles/design";
+
+applyDesignTokens();
 
 const games = rawGames as unknown as RawGameData;
 // Initialize back link in HTML with correct base path
@@ -33,3 +36,5 @@ if (isNaN(gameId)) {
     renderAnalysisView(root, game, nav, games);
   }
 }
+
+markAppReady();

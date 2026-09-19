@@ -4,6 +4,9 @@ import { renderGameForm } from "@admin/views/gameForm";
 import { showToast } from "@admin/components/toast";
 import { getMainUrl } from "@/utils/urls";
 import type { RawGame } from "@/types/raw";
+import { applyDesignTokens, markAppReady } from "@/styles/design";
+
+applyDesignTokens();
 
 let allGames: RawGame[] = [];
 const root = document.getElementById("view-root")!;
@@ -21,6 +24,7 @@ async function bootstrap(): Promise<void> {
     showToast(`Failed to load games: ${(e as Error).message}`, "error");
   }
   route();
+  markAppReady();
 }
 
 function route(): void {
