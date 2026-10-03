@@ -24528,5 +24528,120 @@
         "Nectar": 9
       }
     }
+  },
+  {
+    "game_id": 1065,
+    "players": {
+      "wifey": {
+        "Birds": 49,
+        "Bonus Cards": 14,
+        "End-Of-Round": 18,
+        "Eggs": 4,
+        "Food on Cards": 2,
+        "Tucked": 28,
+        "Nectar": 7
+      },
+      "hubby": {
+        "Birds": 58,
+        "Bonus Cards": 14,
+        "End-Of-Round": 12,
+        "Eggs": 2,
+        "Food on Cards": 9,
+        "Tucked": 0,
+        "Nectar": 13
+      }
+    }
+  },
+  {
+    "game_id": 1066,
+    "players": {
+      "wifey": {
+        "Birds": 54,
+        "Bonus Cards": 25,
+        "End-Of-Round": 16,
+        "Eggs": 10,
+        "Food on Cards": 6,
+        "Tucked": 6,
+        "Nectar": 10
+      },
+      "hubby": {
+        "Birds": 42,
+        "Bonus Cards": 18,
+        "End-Of-Round": 15,
+        "Eggs": 21,
+        "Food on Cards": 0,
+        "Tucked": 8,
+        "Nectar": 10
+      }
+    }
+  },
+  {
+    "game_id": 1067,
+    "players": {
+      "wifey": {
+        "Birds": 38,
+        "Bonus Cards": 19,
+        "End-Of-Round": 13,
+        "Eggs": 3,
+        "Food on Cards": 10,
+        "Tucked": 7,
+        "Nectar": 13
+      },
+      "hubby": {
+        "Birds": 42,
+        "Bonus Cards": 13,
+        "End-Of-Round": 19,
+        "Eggs": 10,
+        "Food on Cards": 3,
+        "Tucked": 18,
+        "Nectar": 7
+      }
+    }
+  },
+  {
+    "game_id": 1068,
+    "players": {
+      "wifey": {
+        "Birds": 50,
+        "Bonus Cards": 19,
+        "End-Of-Round": 14,
+        "Eggs": 8,
+        "Food on Cards": 17,
+        "Tucked": 7,
+        "Nectar": 15
+      },
+      "hubby": {
+        "Birds": 49,
+        "Bonus Cards": 8,
+        "End-Of-Round": 17,
+        "Eggs": 12,
+        "Food on Cards": 6,
+        "Tucked": 8,
+        "Nectar": 6
+      }
+    }
+  },
+  {
+    "game_id": 1069,
+    "players": {
+      "wifey": {
+        "Birds": 48,
+        "Bonus Cards": 17,
+        "End-Of-Round": 19,
+        "Eggs": 7,
+        "Food on Cards": 4,
+        "Tucked": 6,
+        "Nectar": 9
+      },
+      "hubby": {
+        "Birds": 37,
+        "Bonus Cards": 9,
+        "End-Of-Round": 13,
+        "Eggs": 25,
+        "Food on Cards": 1,
+        "Tucked": 18,
+        "Nectar": 12
+      }
+    }
   }
 ]
