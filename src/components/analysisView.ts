@@ -8,9 +8,9 @@ import {
   Legend,
   type Plugin,
 } from "chart.js";
-import { parseGame, calculateCategoryAverages } from "@/data/parser";
 import { COLOURS } from "@/styles/design";
-import type { RawGame, RawGameData } from "@/types/raw";
+import type { GameResult } from "@/types/domain";
+import type { CategoryStat } from "@/types/tally";
 
 Chart.register(
   BarController,
@@ -26,14 +26,20 @@ export interface AnalysisNav {
   next: string | null;
 }
 
+/**
+ * Renders the single-game breakdown: header, per-category table and bar chart,
+ * each score shown against that player's all-time category average.
+ *
+ * `averages` is the tally's `avgScoreByCategory`, so differences here match the
+ * main page exactly. Replaces `el`'s contents and creates a Chart.js instance.
+ */
 export function renderAnalysisView(
   el: HTMLElement,
-  game: RawGame,
+  result: GameResult,
+  averages: CategoryStat[],
   nav?: AnalysisNav,
-  allGames?: RawGameData,
 ): void {
-  const result = parseGame(game);
-  const { categories, totalWifey, totalHubby, winner, tiebreaker, margin } =
+  const { gameId, categories, totalWifey, totalHubby, winner, tiebreaker, margin } =
     result;
 
   const winnerText =
@@ -68,22 +74,9 @@ export function renderAnalysisView(
   const totalWinnerText =
     winner === "draw" ? "Draw" : winner === "wifey" ? "Wifey" : "Hubby";
 
-  // Calculate per-category averages from cross-game category analysis (needed for table and chart)
-  let wifeyByCategory: Record<string, number> = {};
-  let hubbyByCategory: Record<string, number> = {};
-
-  if (allGames && allGames.length > 0) {
-    // Use cached cross-game category averages (only games with matching categories)
-    const categoryAverages = calculateCategoryAverages(game, allGames);
-    wifeyByCategory = categoryAverages.wifeyByCategory;
-    hubbyByCategory = categoryAverages.hubbyByCategory;
-  } else {
-    // Fallback: use current game values as "averages" if allGames not provided
-    categories.forEach((c) => {
-      wifeyByCategory[c.category] = c.wifey;
-      hubbyByCategory[c.category] = c.hubby;
-    });
-  }
+  // Per-category averages across every game containing that category (needed for table and chart)
+  const wifeyByCategory: Record<string, number> = Object.fromEntries(averages.map((s) => [s.category, s.wifey]));
+  const hubbyByCategory: Record<string, number> = Object.fromEntries(averages.map((s) => [s.category, s.hubby]));
 
   const tableRows =
     categories
@@ -159,7 +152,7 @@ export function renderAnalysisView(
     <div class="analysis-header">
       <div class="analysis-game-nav">
         ${prevBtn}
-        <h2>Game #${game.game_id}</h2>
+        <h2>Game #${gameId}</h2>
         ${nextBtn}
       </div>
       <div class="analysis-result">
@@ -190,7 +183,7 @@ export function renderAnalysisView(
     </div>
 
     <div class="analysis-chart-wrap">
-      <canvas id="analysis-chart-${game.game_id}"></canvas>
+      <canvas id="analysis-chart-${gameId}"></canvas>
     </div>`;
 
   // Size the chart container to fit all category bars
@@ -198,7 +191,7 @@ export function renderAnalysisView(
   chartWrap.style.height = `${categories.length * 60 + 60}px`;
 
   const canvas = document.getElementById(
-    `analysis-chart-${game.game_id}`,
+    `analysis-chart-${gameId}`,
   ) as HTMLCanvasElement | null;
   if (!canvas) return;
 

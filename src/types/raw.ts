@@ -13,5 +13,3 @@ export interface RawGame {
     wifey: RawScore;
   };
 }
-
-export type RawGameData = RawGame[];

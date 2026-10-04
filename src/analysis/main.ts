@@ -1,13 +1,11 @@
 import "@/styles/main.css";
-import rawGames from "@/assets/games.json";
+import { results, tally } from "@/data/dataLoader";
 import { renderAnalysisView } from "@/components/analysisView";
 import { getMainUrl } from "@/utils/urls";
-import type { RawGameData } from "@/types/raw";
 import { applyDesignTokens, markAppReady } from "@/styles/design";
 
 applyDesignTokens();
 
-const games = rawGames as unknown as RawGameData;
 // Initialize back link in HTML with correct base path
 const backLinks = document.querySelectorAll<HTMLAnchorElement>('a.back-link');
 backLinks.forEach(link => {
@@ -23,17 +21,17 @@ if (!root) throw new Error("Missing #analysis-root");
 if (isNaN(gameId)) {
   root.innerHTML = `<p id="not-found">No game specified. <a href="${getMainUrl()}" class="back-link">← Back</a></p>`;
 } else {
-  const idx = games.findIndex((g) => g.game_id === gameId);
-  const game = idx !== -1 ? games[idx] : undefined;
-  if (!game) {
+  // results is sorted by game_id, so neighbours are the previous/next games
+  const idx = results.findIndex((r) => r.gameId === gameId);
+  const result = idx !== -1 ? results[idx] : undefined;
+  if (!result) {
     root.innerHTML = `<p id="not-found">Game #${gameId} not found. <a href="${getMainUrl()}" class="back-link">← Back</a></p>`;
   } else {
     const nav = {
-      prev: idx > 0 ? `?game=${games[idx - 1]!.game_id}` : null,
-      next: idx < games.length - 1 ? `?game=${games[idx + 1]!.game_id}` : null,
+      prev: idx > 0 ? `?game=${results[idx - 1]!.gameId}` : null,
+      next: idx < results.length - 1 ? `?game=${results[idx + 1]!.gameId}` : null,
     };
-    // Pass all games to enable cross-game category average calculation
-    renderAnalysisView(root, game, nav, games);
+    renderAnalysisView(root, result, tally.avgScoreByCategory, nav);
   }
 }
 

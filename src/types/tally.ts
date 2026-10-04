@@ -44,11 +44,8 @@ export interface Tally {
   perfectGames: Record<Player, number>;
   /** Pure draws only (no tiebreaker) */
   pureDraws: number;
+  /** Streak records live in `computeGlobalStats`, derived from `runningHistory` */
   currentStreak: Streak;
-  longestStreakWifey: Streak;
-  longestStreakWifeyLastGameId: number | null;
-  longestStreakHubby: Streak;
-  longestStreakHubbyLastGameId: number | null;
   /** Average winning margin for normal wins (tiebreaker games excluded from average) */
   avgMarginWifey: number;
   avgMarginHubby: number;

@@ -1,5 +1,5 @@
 import rawGames from "@/assets/games.json";
-import { loadAll } from "@/data/parser";
-import type { RawGameData } from "@/types/raw";
+import { loadGames } from "@/data/loadGames";
 
-export const { results, tally } = loadAll(rawGames as unknown as RawGameData);
+/** The bundled dataset, loaded once per page; the only module that touches games.json. */
+export const { results, tally } = loadGames(rawGames);

@@ -31,8 +31,8 @@ export interface GameResult {
    */
   margin: number;
   /**
-   * True when the game was a perfect game (winner won every category).
-   * Always false for draws and normal wins.
+   * True when the winner also won every category. Always false for pure draws
+   * (and, necessarily, tiebreaker wins — equal totals preclude a sweep).
    */
   perfect: boolean;
 }
