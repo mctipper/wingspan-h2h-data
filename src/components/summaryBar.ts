@@ -78,6 +78,18 @@ function pairedRows(label: string, rowA: string, rowB: string): string {
     <div class="summary-paired__rows">
       ${rowA}
       ${rowB}
+</div>
+  </div>`;
+}
+
+/** Globals: one unlabelled current row, then a wifey and a hubby row of per-topic maxes. */
+function globalsBlock(currentRow: string, wifeyMaxRow: string, hubbyMaxRow: string): string {
+  return `<div class="summary-paired summary-paired--globals">
+    <span class="summary-paired__label">Globals</span>
+    <div class="summary-paired__rows">
+      ${playerLine(null, currentRow)}
+      ${playerLine("wifey", wifeyMaxRow)}
+      ${playerLine("hubby", hubbyMaxRow)}
     </div>
   </div>`;
 }
@@ -248,10 +260,44 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   const catWifeyRow = simpleRow("", wifeyCards, "summary-row--categories");
   const catHubbyRow = simpleRow("", hubbyCards, "summary-row--categories");
 
+  // ── Globals — current standing above all-time extremes ───
+  const globals = computeGlobalStats(runningHistory, currentStreak);
+
+  /** Current cards: coloured by the current holder, named in the subtext. */
+  const currentCard = (label: string, m: GlobalMetric, value: string): Card => ({
+    label,
+    value,
+    sub: holderName(m.holder),
+    modifier: holderModifier(m.holder),
+  });
+
+  /** Max cards: underlined (linked) to the game the record was last held; the row's subheader names the player. */
+  const maxCard = (label: string, m: GlobalMetric, value: string): Card => ({
+    label,
+    value,
+    modifier: holderModifier(m.holder),
+    gameId: m.gameId,
+  });
+
+  /** One player's maxes, ordered to sit beneath the matching current card. */
+  const maxCards = (player: "wifey" | "hubby"): Card[] => [
+    maxCard("Max Running Tally", globals.maxTally[player], fmtAbs(globals.maxTally[player].value)),
+    maxCard("Max Streak", globals.maxStreak[player], streakLabel(globals.maxStreak[player].value)),
+    maxCard(`Max ${CUMULATIVE_LABEL} Margin`, globals.maxMargin[player], fmtAbs(globals.maxMargin[player].value)),
+  ];
+
+  const globalsCurrentRow = simpleRow("", [
+    currentCard("Current Running Tally", globals.currentTally, fmtAbs(globals.currentTally.value)),
+    currentCard("Current Streak", globals.currentStreak, streakLabel(globals.currentStreak.value)),
+    currentCard(`Current ${CUMULATIVE_LABEL} Margin`, globals.currentMargin, fmtAbs(globals.currentMargin.value)),
+  ], "summary-row--globals");
+  const globalsWifeyRow = simpleRow("", maxCards("wifey"), "summary-row--globals");
+  const globalsHubbyRow = simpleRow("", maxCards("hubby"), "summary-row--globals");
+
   el.innerHTML =
     row1 +
     `<div class="summary-section-gap"></div>` +
     pairedRows("Game Stats", recordsWifeyRow, recordsHubbyRow) +
     `<div class="summary-section-gap"></div>` +
-    pairedRows("Categories", catWifeyRow, catHubbyRow);
+    globalsBlock(globalsCurrentRow, globalsWifeyRow, globalsHubbyRow);
 }
