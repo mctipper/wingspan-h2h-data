@@ -18,11 +18,8 @@ export function renderGameForm(
   onSave: () => Promise<void>
 ): void {
   const isEdit = existingGame !== null;
-  const nextId = isEdit
-    ? existingGame!.game_id
-    : allGames.length > 0
-    ? Math.max(...allGames.map((g) => g.game_id)) + 1
-    : 1;
+  // New games get their id from the server on save; guessing it here could go stale
+  const gameId: number | null = existingGame?.game_id ?? null;
 
   // Seed category rows from existing game, last game (new mode), or a single blank row
   const lastGame = allGames.length > 0 ? allGames[allGames.length - 1] : null;
@@ -178,13 +175,13 @@ export function renderGameForm(
         <div style="margin-bottom: 1rem;">
           <a href="#games" style="color: var(--colour-wifey); text-decoration: none; font-weight: 500;">← Back to Games List</a>
         </div>
-        <div class="view-title" style="margin-bottom:1rem">${isEdit ? `Edit Game #${nextId}` : "New Game"}</div>
+        <div class="view-title" style="margin-bottom:1rem">${isEdit ? `Edit Game #${gameId}` : "New Game"}</div>
 
         <form id="game-form" novalidate>
           <div class="form-meta" style="margin-bottom:1.25rem">
             <div class="form-group">
               <label>Game #</label>
-              <input type="number" value="${nextId}" readonly />
+              <input type="text" value="${gameId ?? ""}" placeholder="Assigned on save" readonly />
             </div>
             <div class="form-group">
               <label>Draw Result</label>
@@ -257,12 +254,12 @@ export function renderGameForm(
     btn.textContent = "Saving…";
 
     try {
-      if (isEdit) {
-        await updateGame(nextId, result.game);
-        showToast(`Game #${nextId} updated successfully`, "success");
+      if (gameId !== null) {
+        await updateGame(gameId, result.game);
+        showToast(`Game #${gameId} updated successfully`, "success");
       } else {
-        await createGame(result.game);
-        showToast(`Game #${nextId} added successfully`, "success");
+        const created = await createGame(result.game);
+        showToast(`Game #${created.game_id} added successfully`, "success");
       }
       // Add a delay after successful save to allow seeing the toast
       setTimeout(() => {
