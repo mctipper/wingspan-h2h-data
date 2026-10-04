@@ -1,17 +1,11 @@
+// Server-side type check: inherits root options and path aliases, but with Node types
+// and no DOM lib so browser globals can't creep into server code. Includes only the
+// shared src modules the server imports (all DOM-free).
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "noEmit": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "lib": ["ES2020"],
-    "paths": {
-      "@/*": ["../src/*"]
-    }
+    "types": ["node"]
   },
-  "include": [".", "../src"]
+  "include": [".", "../src/types", "../src/validation"]
 }
