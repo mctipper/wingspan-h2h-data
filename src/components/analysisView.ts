@@ -1,26 +1,9 @@
-import {
-  Chart,
-  BarController,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  type Plugin,
-} from "chart.js";
+import type { Plugin } from "chart.js";
 import { COLOURS } from "@/styles/design";
 import type { GameResult, Player } from "@/types/domain";
 import type { PlayerTally } from "@/types/tally";
 import { outcomeStyle } from "@/components/outcome";
-
-Chart.register(
-  BarController,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-);
+import { AXIS_GRID, AXIS_TICKS, Chart, TOOLTIP_THEME } from "@/components/charts/chartTheme";
 
 export interface AnalysisNav {
   prev: string | null;
@@ -281,22 +264,18 @@ export function renderAnalysisView(
         x: {
           beginAtZero: true,
           max: xAxisMax,
-          grid: { color: COLOURS.chartGrid },
-          ticks: { color: COLOURS.chartText, font: { size: 11 } },
+          grid: AXIS_GRID,
+          ticks: AXIS_TICKS,
         },
         y: {
           grid: { display: false },
-          ticks: { color: COLOURS.chartText, font: { size: 11 } },
+          ticks: AXIS_TICKS,
         },
       },
       plugins: {
         legend: { labels: { color: COLOURS.chartText } },
         tooltip: {
-          backgroundColor: COLOURS.tooltipBg,
-          titleColor: COLOURS.tooltipTitle,
-          bodyColor: COLOURS.tooltipBody,
-          borderColor: COLOURS.tooltipBorder,
-          borderWidth: 1,
+          ...TOOLTIP_THEME,
           callbacks: {
             afterLabel(context) {
               const categoryName = categories[context.dataIndex]?.category;

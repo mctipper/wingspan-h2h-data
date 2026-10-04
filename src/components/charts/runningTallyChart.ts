@@ -1,138 +1,22 @@
-import {
-  Chart,
-  LineController,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Filler,
-  Tooltip,
-} from "chart.js";
 import type { Tally } from "@/types/tally";
-import { COLOURS } from "@/styles/design";
+import { PLAYER_LABEL } from "@/components/outcome";
+import { renderDivergingLineChart } from "@/components/charts/divergingLineChart";
 
-Chart.register(
-  LineController,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Filler,
-  Tooltip,
-);
-
-export function renderRunningTallyChart(
-  tally: Tally,
-  el: HTMLCanvasElement,
-): void {
+/** Plots the running win difference (wifey − hubby) after each game. Creates a Chart.js instance on `el`. */
+export function renderRunningTallyChart(tally: Tally, el: HTMLCanvasElement): void {
   const { runningHistory } = tally;
 
-  const labels = runningHistory.map((e) => String(e.gameId));
-  const data = runningHistory.map(
-    (e) => e.cumulativeWins.wifey - e.cumulativeWins.hubby,
-  );
-
-  // Max/min value for axis
-  const maxDiff = Math.max(...data, 0);
-  const minDiff = Math.min(...data, 0);
-
-  // Round to the "+5 next whole 10"
-  const yAxisMax = Math.ceil((maxDiff + 5) / 10) * 10;
-  const yAxisMin = Math.floor((minDiff - 5) / 10) * 10;
-
-  // Point colour by who's ahead at that point
-  const pointColors = data.map((v) =>
-    v > 0 ? COLOURS.wifey : v < 0 ? COLOURS.hubby : COLOURS.draw,
-  );
-
-  new Chart(el, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Win difference (Wifey − Hubby)",
-          data,
-          borderColor: COLOURS.wifey,
-          backgroundColor: (ctx) => {
-            const chart = ctx.chart;
-            const { ctx: c, chartArea } = chart;
-            if (!chartArea) return "transparent";
-            const grad = c.createLinearGradient(
-              0,
-              chartArea.top,
-              0,
-              chartArea.bottom,
-            );
-            grad.addColorStop(0, COLOURS.wifey + "55");
-            grad.addColorStop(0.5, "transparent");
-            grad.addColorStop(1, COLOURS.hubby + "55");
-            return grad;
-          },
-          borderWidth: 2,
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          pointBackgroundColor: pointColors,
-          pointBorderColor: pointColors,
-          tension: 0.2,
-          fill: "origin",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: COLOURS.tooltipBg,
-          titleColor: COLOURS.tooltipTitle,
-          bodyColor: COLOURS.tooltipBody,
-          borderColor: COLOURS.tooltipBorder,
-          borderWidth: 1,
-          callbacks: {
-            title(items) {
-              const gameNum = items[0]?.label ?? "";
-              return `After ${gameNum} games`;
-            },
-            label(ctx) {
-              const v = ctx.parsed.y ?? 0;
-              if (v > 0) return `Wifey ahead by ${v}`;
-              if (v < 0) return `Hubby ahead by ${Math.abs(v)}`;
-              return "Tied";
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          ticks: { display: false },
-          title: {
-            display: true,
-            text: "Game #",
-            color: COLOURS.chartText,
-            font: { size: 11 },
-          },
-        },
-        y: {
-          max: yAxisMax,
-          min: yAxisMin,
-          ticks: {
-            color: COLOURS.chartText,
-            font: { size: 11 },
-            stepSize: 10,
-            callback: (v) => (Number(v) > 0 ? `+${Number(v)}` : String(v)),
-          },
-          grid: { color: COLOURS.chartGrid },
-          title: {
-            display: true,
-            text: "← Hubby   Wins   Wifey →",
-            color: COLOURS.chartText,
-            font: { size: 11 },
-          },
-        },
-      },
+  renderDivergingLineChart(el, {
+    label: `Win difference (${PLAYER_LABEL.wifey} − ${PLAYER_LABEL.hubby})`,
+    labels: runningHistory.map((e) => String(e.gameId)),
+    data: runningHistory.map((e) => e.cumulativeWins.wifey - e.cumulativeWins.hubby),
+    axisMetric: "Wins",
+    axisStep: 10,
+    axisPadding: 5,
+    tooltipLabel: (v) => {
+      if (v > 0) return `${PLAYER_LABEL.wifey} ahead by ${v}`;
+      if (v < 0) return `${PLAYER_LABEL.hubby} ahead by ${Math.abs(v)}`;
+      return "Tied";
     },
   });
 }

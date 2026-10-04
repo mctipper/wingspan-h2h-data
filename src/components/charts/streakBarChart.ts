@@ -1,99 +1,55 @@
-import {
-  Chart,
-  BarController,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-} from "chart.js";
-import type { Tally } from "@/types/tally";
+import type { Tally, RunningEntry } from "@/types/tally";
+import type { Player } from "@/types/domain";
 import { COLOURS } from "@/styles/design";
 import { PLAYER_LABEL } from "@/components/outcome";
+import {
+  AXIS_GRID,
+  AXIS_TICKS,
+  Chart,
+  GAME_AXIS,
+  TOOLTIP_THEME,
+  divergingAxisTitle,
+} from "@/components/charts/chartTheme";
 
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
+interface StreakRun {
+  player: Player;
+  length: number;
+}
 
-export function renderStreakBarChart(
-  tally: Tally,
-  el: HTMLCanvasElement,
-): void {
-  const { runningHistory } = tally;
-
-  // Extract individual streaks by detecting when the streak changes
-  type StreakData = {
-    player: "wifey" | "hubby";
-    length: number;
-  };
-
-  const streaks: StreakData[] = [];
-  let lastStreak = runningHistory[0]?.runningStreak;
-  let maxStreakLength = 0;
-
-  for (let i = 0; i < runningHistory.length; i++) {
-    const entry = runningHistory[i];
-    const streak = entry.runningStreak;
-
-    // Detect streak change or end
-    if (i === 0) {
-      // First entry
-      if (streak.player) {
-        lastStreak = streak;
-      }
-    } else {
-      const prevStreak = runningHistory[i - 1].runningStreak;
-
-      // Check if streak ended (player changed or went to null) or streak is longer but different player
-      if (
-        (streak.player !== prevStreak.player ||
-          (streak.player === null && prevStreak.player !== null)) &&
-        prevStreak.player
-      ) {
-        // Record the completed streak
-        streaks.push({
-          player: prevStreak.player,
-          length: prevStreak.length,
-        });
-      }
-
-      // Check if streak is longer than current max
-      if (prevStreak.length > maxStreakLength) {
-        maxStreakLength = prevStreak.length;
-      }
+/**
+ * Every winning streak in order, including the one still running. An entry
+ * closes a run when the next game isn't won by the same player (or there is no
+ * next game); pure draws have no player, so they never start a run.
+ */
+function streakRuns(history: RunningEntry[]): StreakRun[] {
+  const runs: StreakRun[] = [];
+  history.forEach(({ runningStreak: { player, length } }, i) => {
+    if (player !== null && history[i + 1]?.runningStreak.player !== player) {
+      runs.push({ player, length });
     }
-  }
+  });
+  return runs;
+}
 
-  // Add the final streak if it exists
-  if (lastStreak && lastStreak.player && runningHistory.length > 0) {
-    const finalStreak = runningHistory[runningHistory.length - 1].runningStreak;
-    if (finalStreak.player && finalStreak !== streaks[streaks.length - 1]) {
-      streaks.push({
-        player: finalStreak.player,
-        length: finalStreak.length,
-      });
-    }
-  }
+/**
+ * One bar per winning streak, up for wifey and down for hubby, on a y axis
+ * symmetric about zero. Creates a Chart.js instance on `el`.
+ */
+export function renderStreakBarChart(tally: Tally, el: HTMLCanvasElement): void {
+  const runs = streakRuns(tally.runningHistory);
 
-  // Convert to bar chart data (+ve for wifey, -ve for hubby)
-  const labels = streaks.map((_, i) => `${i + 1}`);
-  const data = streaks.map((s) =>
-    s.player === "wifey" ? s.length : -s.length,
-  );
-  const colors = streaks.map((s) =>
-    s.player === "wifey" ? COLOURS.wifey : COLOURS.hubby,
-  );
-
-  // Round to the "next whole 5", equal max/min
-  const yAxisMax = Math.ceil(maxStreakLength / 5) * 5;
-  const yAxisMin = -yAxisMax;
+  // Symmetric axis rounded up to the next multiple of 5, so both players' bars share a scale
+  const yAxisMax = Math.ceil(Math.max(0, ...runs.map((r) => r.length)) / 5) * 5;
 
   new Chart(el, {
     type: "bar",
     data: {
-      labels,
+      labels: runs.map((_, i) => `${i + 1}`),
       datasets: [
         {
           label: "Streaks",
-          data,
-          backgroundColor: colors,
+          data: runs.map((r) => (r.player === "wifey" ? r.length : -r.length)),
+          backgroundColor: runs.map((r) => COLOURS[r.player]),
           borderRadius: 4,
           borderSkipped: false,
         },
@@ -106,53 +62,26 @@ export function renderStreakBarChart(
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: COLOURS.tooltipBg,
-          titleColor: COLOURS.tooltipTitle,
-          bodyColor: COLOURS.tooltipBody,
-          borderColor: COLOURS.tooltipBorder,
-          borderWidth: 1,
+          ...TOOLTIP_THEME,
           callbacks: {
-            title(items) {
-              return `Streak ${items[0]?.label ?? ""}`;
-            },
-            label(ctx) {
+            title: (items) => `Streak ${items[0]?.label ?? ""}`,
+            label: (ctx) => {
               const v = ctx.parsed.y ?? 0;
               const absLen = Math.abs(v);
-              const player = PLAYER_LABEL[v > 0 ? "wifey" : "hubby"];
-              const games = absLen === 1 ? "game" : "games";
-              return `${player}: ${absLen} ${games}`;
+              return `${PLAYER_LABEL[v > 0 ? "wifey" : "hubby"]}: ${absLen} ${absLen === 1 ? "game" : "games"}`;
             },
           },
         },
       },
       scales: {
-        x: {
-          ticks: { display: false },
-          title: {
-            display: true,
-            text: "Game #",
-            color: COLOURS.chartText,
-            font: { size: 11 },
-          },
-        },
+        x: GAME_AXIS,
         y: {
           beginAtZero: true,
           max: yAxisMax,
-          min: yAxisMin,
-          ticks: {
-            color: COLOURS.chartText,
-            font: { size: 11 },
-            callback(value) {
-              return Math.abs(Number(value));
-            },
-          },
-          grid: { color: COLOURS.chartGrid },
-          title: {
-            display: true,
-            text: "← Hubby   Streaks   Wifey →",
-            color: COLOURS.chartText,
-            font: { size: 11 },
-          },
+          min: -yAxisMax,
+          ticks: { ...AXIS_TICKS, callback: (value) => Math.abs(Number(value)) },
+          grid: AXIS_GRID,
+          title: divergingAxisTitle("Streaks"),
         },
       },
     },
