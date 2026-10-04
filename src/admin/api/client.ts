@@ -9,6 +9,7 @@ import type { GameInput } from "@/validation/gameValidator";
 /**
  * Fetches JSON from the API, converting any non-2xx response into a thrown
  * `Error` (preferring the server's `error` message over the bare status).
+ * A 204 resolves to `undefined` — it has no body, so parsing would throw.
  */
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options);
@@ -22,6 +23,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     }
     throw new Error(message);
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 

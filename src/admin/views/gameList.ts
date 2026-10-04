@@ -8,7 +8,8 @@ import { specialCategoryCells, specialCategoryHeaders } from "@/components/speci
 /**
  * Renders the admin games table (newest first) with edit/delete actions into
  * `el`. Outcomes come from `parseGame`, so the list always agrees with the
- * public site. `onDelete` runs after a successful delete to refresh state.
+ * public site. `onDelete` runs after a successful delete and must refresh the
+ * data *and* re-render, since this view does not remove the row itself.
  */
 export function renderGameList(el: HTMLElement, games: RawGame[], onDelete: () => Promise<void>): void {
   const reversed = [...games].reverse();
