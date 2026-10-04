@@ -21,6 +21,28 @@ export interface RunningEntry {
   runningStreak: Streak;
 }
 
+/**
+ * A global metric: a `Metric` plus who holds it. Unlike tally metrics, `value`
+ * is signed (positive favours wifey, negative hubby; streaks are unsigned) and
+ * `gameId` is the game it was *last* attained in — null for current values.
+ */
+export interface GlobalMetric extends Metric {
+  /** Leader/holder of the value; null when level. */
+  holder: Player | null;
+}
+
+/** A record held separately by each player. */
+export type PlayerRecords = Record<Player, GlobalMetric>;
+
+export interface GlobalStats {
+  currentTally: GlobalMetric;
+  currentStreak: GlobalMetric;
+  currentMargin: GlobalMetric;
+  maxTally: PlayerRecords;
+  maxStreak: PlayerRecords;
+  maxMargin: PlayerRecords;
+}
+
 /** One player's record in one category, over games that included it. */
 export interface CategoryRecord {
   avg: number;
@@ -58,8 +80,8 @@ export interface Tally {
   categories: string[];
   /** Categories present in every game (used to italicise partial categories) */
   universalCategories: Set<string>;
-  /** Streak records live in `computeGlobalStats`, derived from `runningHistory` */
-  currentStreak: Streak;
+  /** Current standings and all-time records, derived from `runningHistory` */
+  globals: GlobalStats;
   /** One entry per game in chronological order, used for time-series charts */
   runningHistory: RunningEntry[];
 }

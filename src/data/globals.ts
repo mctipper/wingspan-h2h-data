@@ -1,27 +1,5 @@
 import type { Player } from "@/types/domain";
-import type { Metric, RunningEntry, Streak } from "@/types/tally";
-
-/**
- * A global metric: a `Metric` plus who holds it. Unlike tally metrics, `value`
- * is signed (positive favours wifey, negative hubby; streaks are unsigned) and
- * `gameId` is the game it was *last* attained in — null for current values.
- */
-export interface GlobalMetric extends Metric {
-  /** Leader/holder of the value; null when level. */
-  holder: Player | null;
-}
-
-/** A record held separately by each player. */
-export type PlayerRecords = Record<Player, GlobalMetric>;
-
-export interface GlobalStats {
-  currentTally: GlobalMetric;
-  currentStreak: GlobalMetric;
-  currentMargin: GlobalMetric;
-  maxTally: PlayerRecords;
-  maxStreak: PlayerRecords;
-  maxMargin: PlayerRecords;
-}
+import type { GlobalMetric, GlobalStats, RunningEntry } from "@/types/tally";
 
 /** Maps a signed value to its owner under the wifey-positive / hubby-negative convention. */
 function holderOfSign(value: number): Player | null {
@@ -66,13 +44,12 @@ function playerStreakRecord(history: RunningEntry[], player: Player): GlobalMetr
  *
  * Pure — relies solely on `runningHistory`, so it stays consistent with the charts.
  */
-export function computeGlobalStats(
-  history: RunningEntry[],
-  currentStreak: Streak,
-): GlobalStats {
+export function computeGlobalStats(history: RunningEntry[]): GlobalStats {
   const tallyOf = (e: RunningEntry): number => e.cumulativeWins.wifey - e.cumulativeWins.hubby;
   const marginOf = (e: RunningEntry): number => e.cumulativeMargin;
   const latest = history[history.length - 1];
+  // The latest entry's streak *is* the current streak — no separate input needed
+  const currentStreak = latest?.runningStreak ?? { player: null, length: 0 };
 
   const currentTally = latest ? tallyOf(latest) : 0;
   const currentMargin = latest ? marginOf(latest) : 0;

@@ -1,8 +1,6 @@
-import type { Tally } from "@/types/tally";
+import type { GlobalMetric, Tally } from "@/types/tally";
 import type { Player } from "@/types/domain";
 import { getAnalysisUrl } from "@/utils/urls";
-import { computeGlobalStats } from "@/data/globals";
-import type { GlobalMetric } from "@/data/globals";
 
 function fmt2(n: number): string {
   return n.toFixed(2);
@@ -141,7 +139,7 @@ function globalsBlock(currentRow: string, wifeyMaxRow: string, hubbyMaxRow: stri
  * is symmetric by construction.
  */
 export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
-  const { totalGames, pureDraws, players, categories, currentStreak, runningHistory, universalCategories } = tally;
+  const { totalGames, pureDraws, players, categories, universalCategories, globals } = tally;
 
   // ── Overall: Total Games (with pure draws as subtext) beside a wifey and a hubby line of five cards ──
   const perfectsTooltip = "Games where a player won every single category";
@@ -211,7 +209,6 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   const catHubbyRow = simpleRow("", categoryCards("hubby"), "summary-row--categories");
 
   // ── Globals — current standing above all-time extremes ───
-  const globals = computeGlobalStats(runningHistory, currentStreak);
 
   /** Current cards: coloured by the current holder, named in the subtext. */
   const currentCard = (label: string, m: GlobalMetric, value: string): Card => ({

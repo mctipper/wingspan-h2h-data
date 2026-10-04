@@ -1,5 +1,6 @@
 import { PLAYERS, type GameResult, type Player } from "@/types/domain";
 import type { CategoryRecord, Metric, PlayerTally, RunningEntry, Streak, Tally } from "@/types/tally";
+import { computeGlobalStats } from "@/data/globals";
 
 /** Running totals for one player in one category. */
 interface CategoryAccumulator {
@@ -161,7 +162,7 @@ export function buildTally(results: GameResult[]): Tally {
     players: { wifey: finalise(acc.wifey), hubby: finalise(acc.hubby) },
     categories,
     universalCategories,
-    currentStreak,
     runningHistory,
+    globals: computeGlobalStats(runningHistory),
   };
 }
