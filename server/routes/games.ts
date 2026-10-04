@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { readGames, writeGames } from "../lib/gamesFile.js";
+import { gamesStore } from "../lib/gamesStore.js";
 import { validateGameInput, type ValidationError } from "../../src/validation/gameValidator.js";
 import type { RawGame } from "../../src/types/raw.js";
 
@@ -13,11 +13,16 @@ function sendValidationErrors(res: Response, errors: ValidationError[]): void {
   res.status(400).json({ error: errors.map((e) => e.message).join("; "), errors });
 }
 
+/** Parses a positive integer route id; null when malformed. */
+function parseId(raw: string): number | null {
+  const id = Number(raw);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 // GET /api/games — full game list
 gamesRouter.get("/", async (_req, res) => {
   try {
-    const games = await readGames();
-    res.json(games);
+    res.json(await gamesStore.read());
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
   }
@@ -26,16 +31,18 @@ gamesRouter.get("/", async (_req, res) => {
 // POST /api/games — add new game (game_id assigned by server)
 gamesRouter.post("/", async (req, res) => {
   try {
-    // Validate before touching disk: rejects are cheap and never read stale state
+    // Validate before queuing: rejects are cheap and never hold the lock
     const result = validateGameInput(req.body);
     if (!result.valid) {
       sendValidationErrors(res, result.errors);
       return;
     }
-    const games = await readGames();
-    const nextId = games.length > 0 ? Math.max(...games.map((g) => g.game_id)) + 1 : 1;
-    const newGame: RawGame = { game_id: nextId, ...result.game };
-    await writeGames([...games, newGame]);
+    // Id assignment happens inside the transaction so concurrent POSTs can't collide
+    const newGame = await gamesStore.transact((games) => {
+      const nextId = games.length > 0 ? Math.max(...games.map((g) => g.game_id)) + 1 : 1;
+      const game: RawGame = { game_id: nextId, ...result.game };
+      return { commit: [...games, game], result: game };
+    });
     res.status(201).json(newGame);
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
@@ -45,19 +52,20 @@ gamesRouter.post("/", async (req, res) => {
 // DELETE /api/games/:id — remove a game
 gamesRouter.delete("/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    const id = parseId(req.params.id);
+    if (id === null) {
       res.status(400).json({ error: "Invalid game id" });
       return;
     }
-    const games = await readGames();
-    const idx = games.findIndex((g) => g.game_id === id);
-    if (idx === -1) {
+    const found = await gamesStore.transact((games) =>
+      games.some((g) => g.game_id === id)
+        ? { commit: games.filter((g) => g.game_id !== id), result: true }
+        : { rollback: false },
+    );
+    if (!found) {
       res.status(404).json({ error: `Game ${id} not found` });
       return;
     }
-    games.splice(idx, 1);
-    await writeGames(games);
     res.status(204).end();
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
@@ -67,8 +75,8 @@ gamesRouter.delete("/:id", async (req, res) => {
 // PUT /api/games/:id — update existing game (path id is authoritative; any body game_id is ignored)
 gamesRouter.put("/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    const id = parseId(req.params.id);
+    if (id === null) {
       res.status(400).json({ error: "Invalid game id" });
       return;
     }
@@ -77,15 +85,16 @@ gamesRouter.put("/:id", async (req, res) => {
       sendValidationErrors(res, result.errors);
       return;
     }
-    const games = await readGames();
-    const idx = games.findIndex((g) => g.game_id === id);
-    if (idx === -1) {
+    const updated: RawGame = { game_id: id, ...result.game };
+    const found = await gamesStore.transact((games) =>
+      games.some((g) => g.game_id === id)
+        ? { commit: games.map((g) => (g.game_id === id ? updated : g)), result: true }
+        : { rollback: false },
+    );
+    if (!found) {
       res.status(404).json({ error: `Game ${id} not found` });
       return;
     }
-    const updated: RawGame = { game_id: id, ...result.game };
-    games[idx] = updated;
-    await writeGames(games);
     res.json(updated);
   } catch (e) {
     res.status(500).json({ error: (e as Error).message });
