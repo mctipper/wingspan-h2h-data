@@ -2,6 +2,7 @@ import type { GameResult } from "@/types/domain";
 import type { RunningEntry } from "@/types/tally";
 import { SPECIAL_CATEGORY_COLOUR } from "@/styles/design";
 import { getAnalysisUrl } from "@/utils/urls";
+import { outcomeStyle } from "@/components/outcome";
 
 export function renderGamesTable(
   results: GameResult[],
@@ -17,33 +18,11 @@ export function renderGamesTable(
     .map((game) => {
       const { gameId, winner, margin, totals, tiebreaker, categories, perfect } = game;
 
-      let winnerText: string;
-      let winnerClass: string;
-      if (winner === "draw") {
-        winnerText = "Draw";
-        winnerClass = "winner--draw";
-      } else if (winner === "wifey") {
-        winnerText = "Wifey";
-        winnerClass = "winner--wifey";
-      } else {
-        winnerText = "Hubby";
-        winnerClass = "winner--hubby";
-      }
-
-      // Check if perfect game (winner won every category)
-      const displayWinner = winnerText + (perfect ? "!" : "");
-
+      const { label, winnerClass, rowClass } = outcomeStyle(winner, tiebreaker);
+      // "!" marks a perfect game (winner took every category)
+      const displayWinner = label + (perfect ? "!" : "");
+      // Draws and tiebreakers have equal totals, so this is already 0 for them
       const absMargin = Math.abs(margin);
-      const marginText = winner === "draw" || tiebreaker ? "0" : String(absMargin);
-
-      let rowClass: string;
-      if (winner === "draw") {
-        rowClass = "row--draw";
-      } else if (tiebreaker) {
-        rowClass = winner === "wifey" ? "row--tiebreaker-wifey" : "row--tiebreaker-hubby";
-      } else {
-        rowClass = winner === "wifey" ? "row--wifey" : "row--hubby";
-      }
 
       const entry = historyMap.get(gameId);
 
@@ -74,7 +53,7 @@ export function renderGamesTable(
         <tr class="${rowClass}" data-game-id="${gameId}">
           <td><a href="${getAnalysisUrl(gameId)}" style="color:inherit;text-decoration:none;text-decoration:underline;" title="View analysis">${gameId}</a></td>
           <td class="${winnerClass}">${displayWinner}</td>
-          <td>${marginText}</td>
+          <td>${absMargin}</td>
           <td>${totals.wifey}</td>
           <td>${totals.hubby}</td>
           <td>${streakText}</td>

@@ -1,5 +1,6 @@
 import type { GlobalMetric, Tally } from "@/types/tally";
 import type { Player } from "@/types/domain";
+import { PLAYER_LABEL } from "@/components/outcome";
 import { getAnalysisUrl } from "@/utils/urls";
 
 function fmt2(n: number): string {
@@ -30,8 +31,7 @@ function holderModifier(holder: GlobalMetric["holder"]): string {
 }
 
 function holderName(holder: GlobalMetric["holder"]): string | undefined {
-  if (!holder) return undefined;
-  return holder === "wifey" ? "Wifey" : "Hubby";
+  return holder ? PLAYER_LABEL[holder] : undefined;
 }
 
 /** "Cumulative" collapses to "Cum" on mobile; the swap is done in CSS so no re-render is needed. */
@@ -84,7 +84,7 @@ function simpleRow(rowLabel: string, cards: Card[], extraClass = ""): string {
 /** One wifey/hubby line: a coloured subheader beside (desktop) or above (mobile) its row. */
 function playerLine(player: Player | null, row: string): string {
   // A null player renders an empty spacer so unlabelled rows stay column-aligned with labelled ones
-  const name = player === "wifey" ? "Wifey" : player === "hubby" ? "Hubby" : "";
+  const name = player ? PLAYER_LABEL[player] : "";
   return `<div class="summary-paired__line">
     <span class="summary-paired__subhead summary-paired__subhead--${player ?? "spacer"}">${name}</span>
     ${row}
@@ -113,8 +113,8 @@ function overallBlock(cards: Card[]): string {
   return `<div class="summary-paired summary-paired--overall">
     <span class="summary-paired__label">Overall</span>
     <div class="overall-grid">
-      <span class="summary-paired__subhead summary-paired__subhead--wifey ov-head-wifey">Wifey</span>
-      <span class="summary-paired__subhead summary-paired__subhead--hubby ov-head-hubby">Hubby</span>
+      <span class="summary-paired__subhead summary-paired__subhead--wifey ov-head-wifey">${PLAYER_LABEL.wifey}</span>
+      <span class="summary-paired__subhead summary-paired__subhead--hubby ov-head-hubby">${PLAYER_LABEL.hubby}</span>
       ${cards.map(cardHtml).join("")}
     </div>
   </div>`;

@@ -11,6 +11,7 @@ import {
 import { COLOURS } from "@/styles/design";
 import type { GameResult, Player } from "@/types/domain";
 import type { PlayerTally } from "@/types/tally";
+import { outcomeStyle } from "@/components/outcome";
 
 Chart.register(
   BarController,
@@ -43,16 +44,9 @@ export function renderAnalysisView(
   const { gameId, categories, totals: { wifey: totalWifey, hubby: totalHubby }, winner, tiebreaker, margin } =
     result;
 
-  const winnerText =
-    winner === "draw" ? "Draw" : winner === "wifey" ? "Wifey" : "Hubby";
-  const winnerClass =
-    winner === "draw"
-      ? "winner--draw"
-      : winner === "wifey"
-        ? "winner--wifey"
-        : "winner--hubby";
-  const marginText =
-    winner === "draw" || tiebreaker ? "0" : String(Math.abs(margin));
+  // Shared by the header and the TOTAL row. Draws and tiebreakers have equal totals, so |margin| is already 0
+  const gameOutcome = outcomeStyle(winner);
+  const absMargin = Math.abs(margin);
 
   const prevBtn = nav?.prev
     ? `<a href="${nav.prev}" class="analysis-nav-btn" title="Previous game">&#8249;</a>`
@@ -60,20 +54,6 @@ export function renderAnalysisView(
   const nextBtn = nav?.next
     ? `<a href="${nav.next}" class="analysis-nav-btn" title="Next game">&#8250;</a>`
     : `<span class="analysis-nav-btn analysis-nav-btn--disabled">&#8250;</span>`;
-  const totalWinnerClass =
-    winner === "draw"
-      ? "winner--draw"
-      : winner === "wifey"
-        ? "winner--wifey"
-        : "winner--hubby";
-  const totalWinnerRowClass =
-    winner === "draw"
-      ? "row--draw"
-      : winner === "wifey"
-        ? "row--wifey"
-        : "row--hubby";
-  const totalWinnerText =
-    winner === "draw" ? "Draw" : winner === "wifey" ? "Wifey" : "Hubby";
 
   // Per-category averages across every game containing that category (needed for table and chart)
   const averagesOf = (player: Player): Record<string, number> =>
@@ -84,24 +64,7 @@ export function renderAnalysisView(
   const tableRows =
     categories
       .map((c) => {
-        const catWinnerClass =
-          c.winner === "draw"
-            ? "winner--draw"
-            : c.winner === "wifey"
-              ? "winner--wifey"
-              : "winner--hubby";
-        const catWinnerRowClass =
-          c.winner === "draw"
-            ? "row--draw"
-            : c.winner === "wifey"
-              ? "row--wifey"
-              : "row--hubby";
-        const catWinnerText =
-          c.winner === "draw"
-            ? "Draw"
-            : c.winner === "wifey"
-              ? "Wifey"
-              : "Hubby";
+        const catOutcome = outcomeStyle(c.winner);
 
         // Calculate difference from average for each player
         const wifeyAvg = wifeyByCategory[c.category] ?? 0;
@@ -114,12 +77,12 @@ export function renderAnalysisView(
           hubbyDiff >= 0 ? `+${hubbyDiff.toFixed(1)}` : hubbyDiff.toFixed(1);
 
         return `
-        <tr class=${catWinnerRowClass}>
+        <tr class=${catOutcome.rowClass}>
           <td>${c.category}</td>
           <td class="col-right col-wifey">${c.wifey}<br><span class="category-diff">(${wifeyDiffStr})</span></td>
           <td class="col-right col-hubby">${c.hubby}<br><span class="category-diff">(${hubbyDiffStr})</span></td>
-          <td class="col-right ${catWinnerClass}">${catWinnerText}</td>
-          <td class="col-right ${catWinnerClass}">${c.margin}</td>
+          <td class="col-right ${catOutcome.winnerClass}">${catOutcome.label}</td>
+          <td class="col-right ${catOutcome.winnerClass}">${c.margin}</td>
         </tr>`;
       })
       .join("") +
@@ -143,12 +106,13 @@ export function renderAnalysisView(
         hubbyTotalDiff >= 0
           ? `+${hubbyTotalDiff.toFixed(1)}`
           : hubbyTotalDiff.toFixed(1);
-      return `<tr class=table-row--total ${totalWinnerRowClass}>
+      // TOTAL row is deliberately untinted (no outcome rowClass) so it stands apart from the category rows
+      return `<tr class="table-row--total">
         <td><strong><i>TOTAL</i></strong></td>
         <td class="col-right col-wifey">${totalWifey}<br><span class="category-diff">(${wifeyTotalDiffStr})</span></td>
         <td class="col-right col-hubby">${totalHubby}<br><span class="category-diff">(${hubbyTotalDiffStr})</span></td>
-        <td class="col-right ${totalWinnerClass}">${totalWinnerText}</td>
-        <td class="col-right ${totalWinnerClass}">${Math.abs(margin)}</td>
+        <td class="col-right ${gameOutcome.winnerClass}">${gameOutcome.label}</td>
+        <td class="col-right ${gameOutcome.winnerClass}">${absMargin}</td>
       </tr>`;
     })();
   el.innerHTML = `
@@ -159,9 +123,9 @@ export function renderAnalysisView(
         ${nextBtn}
       </div>
       <div class="analysis-result">
-      <span class="${winnerClass}">${winnerText}</span>
+      <span class="${gameOutcome.winnerClass}">${gameOutcome.label}</span>
       ${tiebreaker ? `<span class="analysis-tiebreaker">(tiebreaker)</span>` : ""}
-      ${winner !== "draw" ? `<span class="analysis-margin">by ${marginText}</span>` : ""}
+      ${winner !== "draw" ? `<span class="analysis-margin">by ${absMargin}</span>` : ""}
       </div>
       <div class="analysis-totals">
         <span class="col-wifey">Wifey </span><span>${totalWifey}</span>

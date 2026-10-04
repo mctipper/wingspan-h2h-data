@@ -2,34 +2,25 @@ import type { RawGame } from "@/types/raw";
 import { SPECIAL_CATEGORIES, SPECIAL_CATEGORY_COLOUR } from "@/styles/design";
 import { deleteGame } from "@admin/api/client";
 import { showToast } from "@admin/components/toast";
+import { parseGame } from "@/data/parseGame";
+import { outcomeStyle } from "@/components/outcome";
 
+/**
+ * Renders the admin games table (newest first) with edit/delete actions into
+ * `el`. Outcomes come from `parseGame`, so the list always agrees with the
+ * public site. `onDelete` runs after a successful delete to refresh state.
+ */
 export function renderGameList(el: HTMLElement, games: RawGame[], onDelete: () => Promise<void>): void {
   const reversed = [...games].reverse();
 
   const rows = reversed
     .map((game) => {
-      const { game_id, players } = game;
-      const hubbyTotal = Object.values(players.hubby).reduce((s, v) => s + v, 0);
-      const wifeyTotal = Object.values(players.wifey).reduce((s, v) => s + v, 0);
+      const { gameId, totals, winner, tiebreaker, categories } = parseGame(game);
+      const { label, rowClass } = outcomeStyle(winner, tiebreaker);
+      // "*" marks a tiebreaker win in the admin list
+      const winnerText = label + (tiebreaker ? "*" : "");
 
-      let rowClass: string;
-      let winnerText: string;
-      if (game.drawResult === "draw") {
-        rowClass = "row--draw";
-        winnerText = "Draw";
-      } else if (wifeyTotal > hubbyTotal) {
-        rowClass = "row--wifey";
-        winnerText = "Wifey";
-      } else if (hubbyTotal > wifeyTotal) {
-        rowClass = "row--hubby";
-        winnerText = "Hubby";
-      } else {
-        // equal scores, tiebreaker
-        rowClass = game.drawResult === "wifey" ? "row--tiebreaker-wifey" : "row--tiebreaker-hubby";
-        winnerText = game.drawResult === "wifey" ? "Wifey*" : "Hubby*";
-      }
-
-      const catSet = new Set(Object.keys(players.hubby));
+      const catSet = new Set(categories.map((c) => c.category));
       const specialTicks = SPECIAL_CATEGORIES.map((cat) =>
         catSet.has(cat)
           ? `<td><span style="color:${SPECIAL_CATEGORY_COLOUR[cat]};font-weight:700;" title="${cat}">✓</span></td>`
@@ -38,15 +29,15 @@ export function renderGameList(el: HTMLElement, games: RawGame[], onDelete: () =
 
       return `
         <tr class="${rowClass}">
-          <td>${game_id}</td>
+          <td>${gameId}</td>
           <td>${winnerText}</td>
-          <td style="color:var(--colour-wifey)">${wifeyTotal}</td>
-          <td style="color:var(--colour-hubby)">${hubbyTotal}</td>
+          <td style="color:var(--colour-wifey)">${totals.wifey}</td>
+          <td style="color:var(--colour-hubby)">${totals.hubby}</td>
           ${specialTicks}
           <td>
             <div class="row-actions">
-              <a href="#edit/${game_id}" class="btn btn--secondary btn--icon" title="Edit">Edit</a>
-              <button class="btn btn--danger btn--icon delete-btn" data-id="${game_id}" title="Delete">Delete</button>
+              <a href="#edit/${gameId}" class="btn btn--secondary btn--icon" title="Edit">Edit</a>
+              <button class="btn btn--danger btn--icon delete-btn" data-id="${gameId}" title="Delete">Delete</button>
             </div>
           </td>
         </tr>`;

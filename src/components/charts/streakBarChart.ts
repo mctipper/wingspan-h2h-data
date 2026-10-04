@@ -8,6 +8,7 @@ import {
 } from "chart.js";
 import type { Tally } from "@/types/tally";
 import { COLOURS } from "@/styles/design";
+import { PLAYER_LABEL } from "@/components/outcome";
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
@@ -117,7 +118,7 @@ export function renderStreakBarChart(
             label(ctx) {
               const v = ctx.parsed.y ?? 0;
               const absLen = Math.abs(v);
-              const player = v > 0 ? "Wifey" : "Hubby";
+              const player = PLAYER_LABEL[v > 0 ? "wifey" : "hubby"];
               const games = absLen === 1 ? "game" : "games";
               return `${player}: ${absLen} ${games}`;
             },
