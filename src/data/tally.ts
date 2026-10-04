@@ -19,11 +19,10 @@ interface PlayerAccumulator {
   normalMarginSum: number;
   maxMargin: Metric;
   maxTotal: Metric;
-  minWinningTotal: Metric;
   categories: Map<string, CategoryAccumulator>;
 }
 
-/** Fresh accumulator; `minWinningTotal` starts at Infinity so the first win always records. */
+/** Fresh accumulator with every count and record at zero. */
 function newPlayerAccumulator(): PlayerAccumulator {
   return {
     wins: 0,
@@ -34,7 +33,6 @@ function newPlayerAccumulator(): PlayerAccumulator {
     normalMarginSum: 0,
     maxMargin: { value: 0, gameId: null },
     maxTotal: { value: 0, gameId: null },
-    minWinningTotal: { value: Infinity, gameId: null },
     categories: new Map(),
   };
 }
@@ -42,14 +40,6 @@ function newPlayerAccumulator(): PlayerAccumulator {
 /** Raises `metric` to `value` if strictly greater, so ties keep the earliest game. */
 function recordMax(metric: Metric, value: number, gameId: number): void {
   if (value > metric.value) {
-    metric.value = value;
-    metric.gameId = gameId;
-  }
-}
-
-/** Lowers `metric` to `value` if strictly smaller, so ties keep the earliest game. */
-function recordMin(metric: Metric, value: number, gameId: number): void {
-  if (value < metric.value) {
     metric.value = value;
     metric.gameId = gameId;
   }
@@ -116,7 +106,6 @@ export function buildTally(results: GameResult[]): Tally {
         p.normalWins++;
         p.normalMarginSum += winningMargin;
         recordMax(p.maxMargin, winningMargin, gameId);
-        recordMin(p.minWinningTotal, totals[winner], gameId);
       }
 
       currentStreak = currentStreak.player === winner
@@ -147,7 +136,6 @@ export function buildTally(results: GameResult[]): Tally {
     avgMargin: mean(p.normalMarginSum, p.normalWins),
     maxMargin: p.maxMargin,
     maxTotal: p.maxTotal,
-    minWinningTotal: isFinite(p.minWinningTotal.value) ? p.minWinningTotal : { value: 0, gameId: null },
     categories: Object.fromEntries(
       categories.map((cat): [string, CategoryRecord] => {
         const c = p.categories.get(cat)!;

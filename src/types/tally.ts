@@ -65,8 +65,6 @@ export interface PlayerTally {
   maxMargin: Metric;
   /** Highest total score in any game */
   maxTotal: Metric;
-  /** Lowest total score in a game they won — normal wins only; 0 when never won */
-  minWinningTotal: Metric;
   /** Keyed by category name; iterate via `Tally.categories` for a stable order */
   categories: Record<string, CategoryRecord>;
 }
