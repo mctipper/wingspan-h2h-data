@@ -1,6 +1,7 @@
 import type { GlobalMetric, Tally } from "@/types/tally";
 import type { Player } from "@/types/domain";
 import { PLAYER_LABEL } from "@/components/outcome";
+import { escapeHtml } from "@/utils/html";
 import { getAnalysisUrl } from "@/utils/urls";
 
 function fmt2(n: number): string {
@@ -38,6 +39,7 @@ function holderName(holder: GlobalMetric["holder"]): string | undefined {
 const CUMULATIVE_LABEL = `<span class="label-full">Cumulative</span><span class="label-short">Cum</span>`;
 
 type Card = {
+  /** Trusted markup (may contain spans) — escape any data-derived text before assigning */
   label: string;
   value: string;
   sub?: string;
@@ -194,7 +196,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
       const mine = players[player].categories[category]!;
       const theirs = players[opponentOf(player)].categories[category]!;
       return {
-        label: category,
+        label: escapeHtml(category),
         value: fmt2(mine.avg),
         best: mine.avg >= theirs.avg,
         // The max's "best" marker is an inline asterisk, not a class

@@ -3,6 +3,7 @@ import { COLOURS } from "@/styles/design";
 import type { GameResult, Player } from "@/types/domain";
 import type { PlayerTally } from "@/types/tally";
 import { outcomeStyle } from "@/components/outcome";
+import { escapeHtml } from "@/utils/html";
 import { AXIS_GRID, AXIS_TICKS, Chart, TOOLTIP_THEME } from "@/components/charts/chartTheme";
 
 export interface AnalysisNav {
@@ -61,7 +62,7 @@ export function renderAnalysisView(
 
         return `
         <tr class=${catOutcome.rowClass}>
-          <td>${c.category}</td>
+          <td>${escapeHtml(c.category)}</td>
           <td class="col-right col-wifey">${c.wifey}<br><span class="category-diff">(${wifeyDiffStr})</span></td>
           <td class="col-right col-hubby">${c.hubby}<br><span class="category-diff">(${hubbyDiffStr})</span></td>
           <td class="col-right ${catOutcome.winnerClass}">${catOutcome.label}</td>

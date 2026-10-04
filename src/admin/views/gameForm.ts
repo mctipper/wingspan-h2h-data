@@ -3,6 +3,7 @@ import { VALID_CATEGORIES } from "@/types/categories";
 import { createGame, updateGame } from "@admin/api/client";
 import { showToast } from "@admin/components/toast";
 import { validateGameInput, type GameInput } from "@/validation/gameValidator";
+import { escapeHtml } from "@/utils/html";
 
 interface CategoryRowState {
   name: string;
@@ -104,7 +105,8 @@ export function renderGameForm(
               ${getAvailableCategories(i)
                 .concat(String(row.name))
                 .filter((c, idx, arr) => arr.indexOf(c) === idx)
-                .map((c) => `<option value="${c}"${c === row.name ? " selected" : ""}>${c}</option>`)
+                // Existing names come from the stored file, which isn't validated on read
+                .map((c) => `<option value="${escapeHtml(c)}"${c === row.name ? " selected" : ""}>${escapeHtml(c)}</option>`)
                 .join("")}
             </select>
           </div>
@@ -243,7 +245,7 @@ export function renderGameForm(
     const errorsEl = document.getElementById("form-errors")!;
     if (!result.valid) {
       errorsEl.style.display = "";
-      errorsEl.innerHTML = result.errors.map((err) => `<div>${escHtml(err.message)}</div>`).join("");
+      errorsEl.innerHTML = result.errors.map((err) => `<div>${escapeHtml(err.message)}</div>`).join("");
       submitErrors = result.errors.map((err) => err.message);
       return;
     }
@@ -276,12 +278,4 @@ export function renderGameForm(
   });
 
   void submitErrors; // suppress unused warning
-}
-
-function escHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }
