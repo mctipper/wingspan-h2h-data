@@ -31,7 +31,7 @@ if (isNaN(gameId)) {
       prev: idx > 0 ? `?game=${results[idx - 1]!.gameId}` : null,
       next: idx < results.length - 1 ? `?game=${results[idx + 1]!.gameId}` : null,
     };
-    renderAnalysisView(root, result, tally.avgScoreByCategory, nav);
+    renderAnalysisView(root, result, tally.players, nav);
   }
 }
 

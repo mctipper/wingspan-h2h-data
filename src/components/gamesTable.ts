@@ -15,7 +15,7 @@ export function renderGamesTable(
 
   const rows = reversed
     .map((game) => {
-      const { gameId, winner, margin, totalWifey, totalHubby, tiebreaker, categories, perfect } = game;
+      const { gameId, winner, margin, totals, tiebreaker, categories, perfect } = game;
 
       let winnerText: string;
       let winnerClass: string;
@@ -54,7 +54,7 @@ export function renderGamesTable(
       }
 
       // Running tallies at this point
-      const cumWinDiff = entry ? entry.cumulativeWinsWifey - entry.cumulativeWinsHubby : null;
+      const cumWinDiff = entry ? entry.cumulativeWins.wifey - entry.cumulativeWins.hubby : null;
       const runWins = cumWinDiff === null ? "—" : cumWinDiff > 0 ? `+${cumWinDiff}` : String(cumWinDiff);
       const runMargin = entry
         ? (entry.cumulativeMargin > 0
@@ -75,8 +75,8 @@ export function renderGamesTable(
           <td><a href="${getAnalysisUrl(gameId)}" style="color:inherit;text-decoration:none;text-decoration:underline;" title="View analysis">${gameId}</a></td>
           <td class="${winnerClass}">${displayWinner}</td>
           <td>${marginText}</td>
-          <td>${totalWifey}</td>
-          <td>${totalHubby}</td>
+          <td>${totals.wifey}</td>
+          <td>${totals.hubby}</td>
           <td>${streakText}</td>
           <td>${runWins}</td>
           <td>${runMargin}</td>

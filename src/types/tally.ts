@@ -5,76 +5,61 @@ export interface Streak {
   length: number;
 }
 
+/** A record value and the game it was first attained in (null when never attained). */
+export interface Metric {
+  value: number;
+  gameId: number | null;
+}
+
 export interface RunningEntry {
   gameId: number;
-  cumulativeWinsWifey: number;
-  cumulativeWinsHubby: number;
+  /** Wins (including tiebreakers) per player up to and including this game */
+  cumulativeWins: Record<Player, number>;
   /** Running sum of signed margins (positive = wifey ahead, negative = hubby ahead) */
   cumulativeMargin: number;
   /** Current streak at this point in history */
   runningStreak: Streak;
 }
 
-/**
- * Separate sub-object counting draw-related outcomes only.
- * These are tracked independently and do not affect streaks, margins, or win counts.
- */
-export interface DrawSummary {
-  /** Total games where scores were equal (includes tiebreaker results and pure draws) */
-  totalDrawScores: number;
-  /** Games where scores were equal and a tiebreaker produced a winner */
-  tiebreakerWins: Record<Player, number>;
-  /** Games where scores were equal and no tiebreaker — a pure draw */
-  pureDraws: number;
+/** One player's record in one category, over games that included it. */
+export interface CategoryRecord {
+  avg: number;
+  max: Metric;
 }
 
-export interface CategoryStat {
-  category: string;
-  wifey: number;
-  hubby: number;
-  maxWifeyGameId?: number | null;
-  maxHubbyGameId?: number | null;
+/** Everything the tally knows about a single player. */
+export interface PlayerTally {
+  /** Includes tiebreaker wins */
+  wins: number;
+  /** Wins decided by tiebreaker after equal scores (a subset of `wins`) */
+  tiebreakerWins: number;
+  /** Games where the player won every category */
+  perfectGames: number;
+  /** Mean total score across all games */
+  avgScore: number;
+  /** Mean winning margin — normal wins only (tiebreakers have no margin) */
+  avgMargin: number;
+  /** Largest winning margin — normal wins only */
+  maxMargin: Metric;
+  /** Highest total score in any game */
+  maxTotal: Metric;
+  /** Lowest total score in a game they won — normal wins only; 0 when never won */
+  minWinningTotal: Metric;
+  /** Keyed by category name; iterate via `Tally.categories` for a stable order */
+  categories: Record<string, CategoryRecord>;
 }
 
 export interface Tally {
   totalGames: number;
-  /** Win counts — tiebreaker wins are included here as regular wins */
-  wins: Record<Player, number>;
-  /** Perfect games (won every single category) */
-  perfectGames: Record<Player, number>;
-  /** Pure draws only (no tiebreaker) */
+  /** Equal scores with no tiebreaker; these break streaks but count as nobody's win */
   pureDraws: number;
-  /** Streak records live in `computeGlobalStats`, derived from `runningHistory` */
-  currentStreak: Streak;
-  /** Average winning margin for normal wins (tiebreaker games excluded from average) */
-  avgMarginWifey: number;
-  avgMarginHubby: number;
-
-  /** Max total score across all games */
-  maxTotalWifey: number;
-  maxTotalWifeyGameId: number | null;
-  maxTotalHubby: number;
-  maxTotalHubbyGameId: number | null;
-  /** Max winning margin (normal wins only) */
-  maxMarginWifey: number;
-  maxMarginWifeyGameId: number | null;
-  maxMarginHubby: number;
-  maxMarginHubbyGameId: number | null;
-  /** Min total score in a game that was won (normal wins only) */
-  minWinningTotalWifey: number;
-  minWinningTotalWifeyGameId: number | null;
-  minWinningTotalHubby: number;
-  minWinningTotalHubbyGameId: number | null;
-
-  /** Max score per category (overall total first, then each category) */
-  maxScoreByCategory: CategoryStat[];
-  /** Average score per category (overall total first, then each category) */
-  avgScoreByCategory: CategoryStat[];
+  players: Record<Player, PlayerTally>;
+  /** Every category seen, in order of first appearance */
+  categories: string[];
   /** Categories present in every game (used to italicise partial categories) */
   universalCategories: Set<string>;
-
+  /** Streak records live in `computeGlobalStats`, derived from `runningHistory` */
+  currentStreak: Streak;
   /** One entry per game in chronological order, used for time-series charts */
   runningHistory: RunningEntry[];
-  /** Draw-specific breakdown — tracked separately from main results */
-  drawSummary: DrawSummary;
 }

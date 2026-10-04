@@ -9,8 +9,8 @@ import {
   type Plugin,
 } from "chart.js";
 import { COLOURS } from "@/styles/design";
-import type { GameResult } from "@/types/domain";
-import type { CategoryStat } from "@/types/tally";
+import type { GameResult, Player } from "@/types/domain";
+import type { PlayerTally } from "@/types/tally";
 
 Chart.register(
   BarController,
@@ -30,16 +30,17 @@ export interface AnalysisNav {
  * Renders the single-game breakdown: header, per-category table and bar chart,
  * each score shown against that player's all-time category average.
  *
- * `averages` is the tally's `avgScoreByCategory`, so differences here match the
- * main page exactly. Replaces `el`'s contents and creates a Chart.js instance.
+ * Averages come from the tally's per-player category records, so differences
+ * here match the main page exactly. Replaces `el`'s contents and creates a
+ * Chart.js instance.
  */
 export function renderAnalysisView(
   el: HTMLElement,
   result: GameResult,
-  averages: CategoryStat[],
+  players: Record<Player, PlayerTally>,
   nav?: AnalysisNav,
 ): void {
-  const { gameId, categories, totalWifey, totalHubby, winner, tiebreaker, margin } =
+  const { gameId, categories, totals: { wifey: totalWifey, hubby: totalHubby }, winner, tiebreaker, margin } =
     result;
 
   const winnerText =
@@ -75,8 +76,10 @@ export function renderAnalysisView(
     winner === "draw" ? "Draw" : winner === "wifey" ? "Wifey" : "Hubby";
 
   // Per-category averages across every game containing that category (needed for table and chart)
-  const wifeyByCategory: Record<string, number> = Object.fromEntries(averages.map((s) => [s.category, s.wifey]));
-  const hubbyByCategory: Record<string, number> = Object.fromEntries(averages.map((s) => [s.category, s.hubby]));
+  const averagesOf = (player: Player): Record<string, number> =>
+    Object.fromEntries(Object.entries(players[player].categories).map(([cat, rec]) => [cat, rec.avg]));
+  const wifeyByCategory = averagesOf("wifey");
+  const hubbyByCategory = averagesOf("hubby");
 
   const tableRows =
     categories

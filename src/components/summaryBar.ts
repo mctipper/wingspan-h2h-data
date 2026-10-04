@@ -1,4 +1,5 @@
 import type { Tally } from "@/types/tally";
+import type { Player } from "@/types/domain";
 import { getAnalysisUrl } from "@/utils/urls";
 import { computeGlobalStats } from "@/data/globals";
 import type { GlobalMetric } from "@/data/globals";
@@ -11,14 +12,13 @@ function fmtInt(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
-function streakLabel(length: number): string {
-  return length === 0 ? "—" : String(length);
+/** The other player — the comparison target for "best" markers. */
+function opponentOf(player: Player): Player {
+  return player === "wifey" ? "hubby" : "wifey";
 }
 
-function streakSub(player: "wifey" | "hubby" | null, length: number): string | undefined {
-  if (!player || length === 0) return undefined;
-  const name = player === "wifey" ? "Wifey" : "Hubby";
-  return `${name}, ${length} game${length !== 1 ? "s" : ""}`;
+function streakLabel(length: number): string {
+  return length === 0 ? "—" : String(length);
 }
 
 /** Absolute display — direction is conveyed by colour and the player name instead of a sign. */
@@ -47,7 +47,6 @@ type Card = {
   /** Extra class naming the card's grid area (used by the Overall block's explicit placement) */
   area?: string;
   best?: boolean;
-  subBest?: boolean;
   labelItalic?: boolean;
   gameId?: number | null;
   subGameId?: number | null;
@@ -57,7 +56,6 @@ type Card = {
 function cardHtml(c: Card): string {
   const labelClass = `stat-card__label${c.labelItalic ? " stat-card__label--italic" : ""}${c.tooltip ? " stat-card__label--tooltip" : ""}`;
   const valueClass = `stat-card__value${c.best ? " stat-card__value--best" : ""}`;
-  const subClass = `stat-card__sub${c.subBest ? " stat-card__sub--best" : ""}`;
   const valueHtml = c.gameId
     ? `<a href="${getAnalysisUrl(c.gameId)}" class="stat-card__link" title="View game #${c.gameId}">${c.value}</a>`
     : c.value;
@@ -73,7 +71,7 @@ function cardHtml(c: Card): string {
     <div class="stat-card ${c.modifier}${c.area ? ` ${c.area}` : ""}">
       ${labelHtml}
       <span class="${valueClass}">${valueHtml}</span>
-      ${c.sub !== undefined ? `<span class="${subClass}">${subHtml}</span>` : ""}
+      ${c.sub !== undefined ? `<span class="stat-card__sub">${subHtml}</span>` : ""}
     </div>`;
 }
 
@@ -86,7 +84,7 @@ function simpleRow(rowLabel: string, cards: Card[], extraClass = ""): string {
 }
 
 /** One wifey/hubby line: a coloured subheader beside (desktop) or above (mobile) its row. */
-function playerLine(player: "wifey" | "hubby" | null, row: string): string {
+function playerLine(player: Player | null, row: string): string {
   // A null player renders an empty spacer so unlabelled rows stay column-aligned with labelled ones
   const name = player === "wifey" ? "Wifey" : player === "hubby" ? "Hubby" : "";
   return `<div class="summary-paired__line">
@@ -136,63 +134,44 @@ function globalsBlock(currentRow: string, wifeyMaxRow: string, hubbyMaxRow: stri
   </div>`;
 }
 
+/**
+ * Renders the three summary blocks (Overall, Categories, Globals) into `el`,
+ * replacing its contents. Every per-player card is built from the player's own
+ * `PlayerTally` compared against the opponent's, so the asterisk ("best") logic
+ * is symmetric by construction.
+ */
 export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
-  const {
-    totalGames,
-    wins,
-    perfectGames,
-    pureDraws,
-    currentStreak,
-    runningHistory,
-    avgMarginWifey,
-    avgMarginHubby,
-    maxMarginWifey,
-    maxMarginHubby,
-    maxScoreByCategory,
-    avgScoreByCategory,
-    universalCategories,
-    drawSummary,
-  } = tally;
+  const { totalGames, pureDraws, players, categories, currentStreak, runningHistory, universalCategories } = tally;
 
-  const tbWifey = drawSummary.tiebreakerWins.wifey;
-  const tbHubby = drawSummary.tiebreakerWins.hubby;
-
-  // ── Overall: Total Games (with pure draws as subtext) beside a wifey and a hubby line of four cards ──
-  const avgOverallWifey = avgScoreByCategory[0]?.wifey ?? 0;
-  const avgOverallHubby = avgScoreByCategory[0]?.hubby ?? 0;
+  // ── Overall: Total Games (with pure draws as subtext) beside a wifey and a hubby line of five cards ──
   const perfectsTooltip = "Games where a player won every single category";
   const tbSub = (n: number): string | undefined =>
     n > 0 ? `${n} tiebreaker${n !== 1 ? "s" : ""}` : undefined;
 
-  /** A player's four cards; tied values both earn the asterisk. The player's subheader names them. */
-  const overallPlayerCards = (
-    player: "wifey" | "hubby",
-    other: "wifey" | "hubby",
-    avgScore: [number, number],
-    avgMargin: [number, number],
-    maxMargin: { value: number; otherValue: number; gameId: number | null },
-    tiebreakers: number,
-  ): Card[] => {
+  /** A player's cards; tied values both earn the asterisk. The player's subheader names them. */
+  const overallPlayerCards = (player: Player): Card[] => {
+    const mine = players[player];
+    const theirs = players[opponentOf(player)];
     const modifier = `stat-card--${player}`;
     const slot = (name: string): string => `ov-${player}-${name}`;
     return [
-      { label: "Wins", value: String(wins[player]), sub: tbSub(tiebreakers), modifier, area: slot("wins") },
-      { label: "Avg Score", value: fmt2(avgScore[0]), modifier, area: slot("score"), best: avgScore[0] >= avgScore[1] },
-      { label: "Avg Margin", value: fmt2(avgMargin[0]), modifier, area: slot("margin"), best: avgMargin[0] >= avgMargin[1] },
+      { label: "Wins", value: String(mine.wins), sub: tbSub(mine.tiebreakerWins), modifier, area: slot("wins") },
+      { label: "Avg Score", value: fmt2(mine.avgScore), modifier, area: slot("score"), best: mine.avgScore >= theirs.avgScore },
+      { label: "Avg Margin", value: fmt2(mine.avgMargin), modifier, area: slot("margin"), best: mine.avgMargin >= theirs.avgMargin },
       {
         label: "Max Margin",
-        value: String(maxMargin.value),
+        value: String(mine.maxMargin.value),
         modifier,
         area: slot("maxmargin"),
-        best: maxMargin.value >= maxMargin.otherValue,
-        gameId: maxMargin.gameId,
+        best: mine.maxMargin.value >= theirs.maxMargin.value,
+        gameId: mine.maxMargin.gameId,
       },
       {
         label: "Perfects",
-        value: String(perfectGames[player]),
+        value: String(mine.perfectGames),
         modifier,
         area: slot("perfects"),
-        best: perfectGames[player] >= perfectGames[other],
+        best: mine.perfectGames >= theirs.perfectGames,
         tooltip: perfectsTooltip,
       },
     ];
@@ -206,66 +185,30 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
       modifier: "stat-card--neutral",
       area: "ov-total",
     },
-    ...overallPlayerCards("wifey", "hubby", [avgOverallWifey, avgOverallHubby], [avgMarginWifey, avgMarginHubby], { value: maxMarginWifey, otherValue: maxMarginHubby, gameId: tally.maxMarginWifeyGameId }, tbWifey),
-    ...overallPlayerCards("hubby", "wifey", [avgOverallHubby, avgOverallWifey], [avgMarginHubby, avgMarginWifey], { value: maxMarginHubby, otherValue: maxMarginWifey, gameId: tally.maxMarginHubbyGameId }, tbHubby),
+    ...overallPlayerCards("wifey"),
+    ...overallPlayerCards("hubby"),
   ];
 
   // ── Category rows — avg as main value, max as subtext ────
-  const catStats = maxScoreByCategory.slice(1);
-  const catAvgStats = avgScoreByCategory.slice(1);
-  const maxMap = new Map(catStats.map((s) => [s.category, s]));
+  /** One card per category for `player`, in first-appearance order. */
+  const categoryCards = (player: Player): Card[] =>
+    categories.map((category) => {
+      const mine = players[player].categories[category]!;
+      const theirs = players[opponentOf(player)].categories[category]!;
+      return {
+        label: category,
+        value: fmt2(mine.avg),
+        best: mine.avg >= theirs.avg,
+        // The max's "best" marker is an inline asterisk, not a class
+        sub: `max ${fmtInt(mine.max.value)}${mine.max.value >= theirs.max.value ? "*" : ""}`,
+        modifier: `stat-card--${player}`,
+        labelItalic: !universalCategories.has(category),
+        subGameId: mine.max.gameId,
+      };
+    });
 
-  function catCard(
-    label: string,
-    avgValue: number,
-    maxValue: number,
-    opponentAvg: number,
-    opponentMax: number,
-    modifier: string,
-    maxGameId?: number | null,
-  ): Card {
-    const avgBest = avgValue >= opponentAvg;
-    const maxBest = maxValue >= opponentMax;
-    return {
-      label,
-      value: fmt2(avgValue),
-      best: avgBest,
-      sub: `max ${fmtInt(maxValue)}${maxBest ? "*" : ""}`,
-      subBest: false, // asterisk is inline in sub text instead
-      modifier,
-      labelItalic: !universalCategories.has(label),
-      subGameId: maxGameId,
-    };
-  }
-
-  const wifeyCards: Card[] = catAvgStats.map((s) => {
-    const maxS = maxMap.get(s.category);
-    return catCard(
-      s.category,
-      s.wifey,
-      maxS?.wifey ?? 0,
-      s.hubby,
-      maxS?.hubby ?? 0,
-      "stat-card--wifey",
-      maxS?.maxWifeyGameId,
-    );
-  });
-
-  const hubbyCards: Card[] = catAvgStats.map((s) => {
-    const maxS = maxMap.get(s.category);
-    return catCard(
-      s.category,
-      s.hubby,
-      maxS?.hubby ?? 0,
-      s.wifey,
-      maxS?.wifey ?? 0,
-      "stat-card--hubby",
-      maxS?.maxHubbyGameId,
-    );
-  });
-
-  const catWifeyRow = simpleRow("", wifeyCards, "summary-row--categories");
-  const catHubbyRow = simpleRow("", hubbyCards, "summary-row--categories");
+  const catWifeyRow = simpleRow("", categoryCards("wifey"), "summary-row--categories");
+  const catHubbyRow = simpleRow("", categoryCards("hubby"), "summary-row--categories");
 
   // ── Globals — current standing above all-time extremes ───
   const globals = computeGlobalStats(runningHistory, currentStreak);
@@ -287,7 +230,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   });
 
   /** One player's maxes, ordered to sit beneath the matching current card. */
-  const maxCards = (player: "wifey" | "hubby"): Card[] => [
+  const maxCards = (player: Player): Card[] => [
     maxCard("Max Running Tally", globals.maxTally[player], fmtAbs(globals.maxTally[player].value)),
     maxCard("Max Streak", globals.maxStreak[player], streakLabel(globals.maxStreak[player].value)),
     maxCard(`Max ${CUMULATIVE_LABEL} Margin`, globals.maxMargin[player], fmtAbs(globals.maxMargin[player].value)),

@@ -1,15 +1,62 @@
-import type { GameResult } from "@/types/domain";
-import type { CategoryStat, DrawSummary, RunningEntry, Streak, Tally } from "@/types/tally";
+import { PLAYERS, type GameResult, type Player } from "@/types/domain";
+import type { CategoryRecord, Metric, PlayerTally, RunningEntry, Streak, Tally } from "@/types/tally";
 
-/** Per-category running sums and maxima, keyed by category name during aggregation. */
+/** Running totals for one player in one category. */
 interface CategoryAccumulator {
-  sumWifey: number;
-  sumHubby: number;
-  maxWifey: number;
-  maxHubby: number;
-  count: number;
-  maxWifeyGameId: number | null;
-  maxHubbyGameId: number | null;
+  sum: number;
+  max: Metric;
+}
+
+/** One player's running state during the aggregation pass. */
+interface PlayerAccumulator {
+  wins: number;
+  tiebreakerWins: number;
+  perfectGames: number;
+  scoreSum: number;
+  /** Normal (non-tiebreaker) wins — the denominator for average margin */
+  normalWins: number;
+  normalMarginSum: number;
+  maxMargin: Metric;
+  maxTotal: Metric;
+  minWinningTotal: Metric;
+  categories: Map<string, CategoryAccumulator>;
+}
+
+/** Fresh accumulator; `minWinningTotal` starts at Infinity so the first win always records. */
+function newPlayerAccumulator(): PlayerAccumulator {
+  return {
+    wins: 0,
+    tiebreakerWins: 0,
+    perfectGames: 0,
+    scoreSum: 0,
+    normalWins: 0,
+    normalMarginSum: 0,
+    maxMargin: { value: 0, gameId: null },
+    maxTotal: { value: 0, gameId: null },
+    minWinningTotal: { value: Infinity, gameId: null },
+    categories: new Map(),
+  };
+}
+
+/** Raises `metric` to `value` if strictly greater, so ties keep the earliest game. */
+function recordMax(metric: Metric, value: number, gameId: number): void {
+  if (value > metric.value) {
+    metric.value = value;
+    metric.gameId = gameId;
+  }
+}
+
+/** Lowers `metric` to `value` if strictly smaller, so ties keep the earliest game. */
+function recordMin(metric: Metric, value: number, gameId: number): void {
+  if (value < metric.value) {
+    metric.value = value;
+    metric.gameId = gameId;
+  }
+}
+
+/** Mean that is 0 rather than NaN for an empty set. */
+function mean(sum: number, count: number): number {
+  return count > 0 ? sum / count : 0;
 }
 
 /**
@@ -19,131 +66,56 @@ interface CategoryAccumulator {
  * history depend on it. Pure: never mutates the input results.
  */
 export function buildTally(results: GameResult[]): Tally {
-  let winsWifey = 0;
-  let winsHubby = 0;
-  let perfectGamesWifey = 0;
-  let perfectGamesHubby = 0;
+  const acc: Record<Player, PlayerAccumulator> = {
+    wifey: newPlayerAccumulator(),
+    hubby: newPlayerAccumulator(),
+  };
+  // Shared by both players: a category is always scored by both or neither
+  const categoryGameCounts = new Map<string, number>();
+
   let pureDraws = 0;
   let cumulativeMargin = 0;
-
-  // Draw summary tracked separately
-  const drawSummary: DrawSummary = {
-    totalDrawScores: 0,
-    tiebreakerWins: { wifey: 0, hubby: 0 },
-    pureDraws: 0,
-  };
-
-  // For average margin — only normal (non-tiebreaker) wins
-  let totalMarginWifey = 0;
-  let totalMarginHubby = 0;
-  let normalWinsWifey = 0;
-  let normalWinsHubby = 0;
-
-  // Max/min score tracking with gameIds
-  let maxTotalWifey = 0;
-  let maxTotalWifeyGameId: number | null = null;
-  let maxTotalHubby = 0;
-  let maxTotalHubbyGameId: number | null = null;
-  let maxMarginWifey = 0;
-  let maxMarginWifeyGameId: number | null = null;
-  let maxMarginHubby = 0;
-  let maxMarginHubbyGameId: number | null = null;
-  let minWinningTotalWifey = Infinity;
-  let minWinningTotalWifeyGameId: number | null = null;
-  let minWinningTotalHubby = Infinity;
-  let minWinningTotalHubbyGameId: number | null = null;
-
-  const catAccum = new Map<string, CategoryAccumulator>();
-
   let currentStreak: Streak = { player: null, length: 0 };
-
   const runningHistory: RunningEntry[] = [];
 
-  for (const result of results) {
-    const { winner, tiebreaker, margin, totalWifey, totalHubby, categories, gameId, perfect } = result;
+  for (const { gameId, categories, totals, winner, tiebreaker, margin, perfect } of results) {
+    // ── Scores: every game counts towards both players' averages and maxima ──
+    for (const player of PLAYERS) {
+      const p = acc[player];
+      p.scoreSum += totals[player];
+      recordMax(p.maxTotal, totals[player], gameId);
 
-    // Max totals
-    if (totalWifey > maxTotalWifey) {
-      maxTotalWifey = totalWifey;
-      maxTotalWifeyGameId = gameId;
-    }
-    if (totalHubby > maxTotalHubby) {
-      maxTotalHubby = totalHubby;
-      maxTotalHubbyGameId = gameId;
-    }
-
-    // Max margin and min winning total — normal wins only
-    if (!tiebreaker && winner === "wifey") {
-      const m = Math.abs(margin);
-      if (m > maxMarginWifey) {
-        maxMarginWifey = m;
-        maxMarginWifeyGameId = gameId;
-      }
-      if (totalWifey < minWinningTotalWifey) {
-        minWinningTotalWifey = totalWifey;
-        minWinningTotalWifeyGameId = gameId;
+      for (const cat of categories) {
+        let c = p.categories.get(cat.category);
+        if (!c) {
+          c = { sum: 0, max: { value: 0, gameId: null } };
+          p.categories.set(cat.category, c);
+        }
+        c.sum += cat[player];
+        recordMax(c.max, cat[player], gameId);
       }
     }
-    if (!tiebreaker && winner === "hubby") {
-      const m = Math.abs(margin);
-      if (m > maxMarginHubby) {
-        maxMarginHubby = m;
-        maxMarginHubbyGameId = gameId;
-      }
-      if (totalHubby < minWinningTotalHubby) {
-        minWinningTotalHubby = totalHubby;
-        minWinningTotalHubbyGameId = gameId;
-      }
-    }
-
-    // Per-category accumulation
     for (const cat of categories) {
-      let acc = catAccum.get(cat.category);
-      if (!acc) {
-        acc = { sumWifey: 0, sumHubby: 0, maxWifey: 0, maxHubby: 0, count: 0, maxWifeyGameId: null, maxHubbyGameId: null };
-        catAccum.set(cat.category, acc);
-      }
-      acc.sumWifey += cat.wifey;
-      acc.sumHubby += cat.hubby;
-      if (cat.wifey > acc.maxWifey) {
-        acc.maxWifey = cat.wifey;
-        acc.maxWifeyGameId = gameId;
-      }
-      if (cat.hubby > acc.maxHubby) {
-        acc.maxHubby = cat.hubby;
-        acc.maxHubbyGameId = gameId;
-      }
-      acc.count++;
+      categoryGameCounts.set(cat.category, (categoryGameCounts.get(cat.category) ?? 0) + 1);
     }
 
+    // ── Outcome: wins, margins and streaks ──
     if (winner === "draw") {
       // Pure draw — game played, streak broken, not counted as a win
       pureDraws++;
-      drawSummary.totalDrawScores++;
-      drawSummary.pureDraws++;
       currentStreak = { player: null, length: 0 };
     } else {
-      // Win (normal or tiebreaker) — counts as a regular win for streaks and totals
-      if (winner === "wifey") {
-        winsWifey++;
-        if (perfect) perfectGamesWifey++;
-        if (tiebreaker) {
-          drawSummary.totalDrawScores++;
-          drawSummary.tiebreakerWins.wifey++;
-        } else {
-          normalWinsWifey++;
-          totalMarginWifey += Math.abs(margin);
-        }
+      const p = acc[winner];
+      p.wins++;
+      if (perfect) p.perfectGames++;
+      if (tiebreaker) {
+        p.tiebreakerWins++;
       } else {
-        winsHubby++;
-        if (perfect) perfectGamesHubby++;
-        if (tiebreaker) {
-          drawSummary.totalDrawScores++;
-          drawSummary.tiebreakerWins.hubby++;
-        } else {
-          normalWinsHubby++;
-          totalMarginHubby += Math.abs(margin);
-        }
+        const winningMargin = Math.abs(margin);
+        p.normalWins++;
+        p.normalMarginSum += winningMargin;
+        recordMax(p.maxMargin, winningMargin, gameId);
+        recordMin(p.minWinningTotal, totals[winner], gameId);
       }
 
       currentStreak = currentStreak.player === winner
@@ -152,66 +124,44 @@ export function buildTally(results: GameResult[]): Tally {
     }
 
     cumulativeMargin += margin;
-
     runningHistory.push({
       gameId,
-      cumulativeWinsWifey: winsWifey,
-      cumulativeWinsHubby: winsHubby,
+      cumulativeWins: { wifey: acc.wifey.wins, hubby: acc.hubby.wins },
       cumulativeMargin,
       runningStreak: { ...currentStreak },
     });
   }
 
-  // Build per-category stat arrays (overall total first, then each category)
-  const allCategories = [...catAccum.keys()];
-  const n = results.length;
+  // ── Finalise ──
+  const totalGames = results.length;
+  const categories = [...categoryGameCounts.keys()];
+  const universalCategories = new Set(categories.filter((cat) => categoryGameCounts.get(cat) === totalGames));
 
-  // Categories present in every game
-  const universalCategories = new Set(
-    allCategories.filter((cat) => catAccum.get(cat)!.count === n)
-  );
-
-  const overallMaxStat: CategoryStat = { category: "Overall", wifey: maxTotalWifey, hubby: maxTotalHubby };
-  const overallAvgStat: CategoryStat = {
-    category: "Overall",
-    wifey: n > 0 ? results.reduce((s, r) => s + r.totalWifey, 0) / n : 0,
-    hubby: n > 0 ? results.reduce((s, r) => s + r.totalHubby, 0) / n : 0,
-  };
-
-  const maxScoreByCategory: CategoryStat[] = [overallMaxStat, ...allCategories.map((cat) => {
-    const acc = catAccum.get(cat)!;
-    return { category: cat, wifey: acc.maxWifey, hubby: acc.maxHubby, maxWifeyGameId: acc.maxWifeyGameId, maxHubbyGameId: acc.maxHubbyGameId };
-  })];
-
-  const avgScoreByCategory: CategoryStat[] = [overallAvgStat, ...allCategories.map((cat) => {
-    const acc = catAccum.get(cat)!;
-    return { category: cat, wifey: acc.count > 0 ? acc.sumWifey / acc.count : 0, hubby: acc.count > 0 ? acc.sumHubby / acc.count : 0 };
-  })];
+  /** Converts a player's accumulator into its public, immutable-by-convention shape. */
+  const finalise = (p: PlayerAccumulator): PlayerTally => ({
+    wins: p.wins,
+    tiebreakerWins: p.tiebreakerWins,
+    perfectGames: p.perfectGames,
+    avgScore: mean(p.scoreSum, totalGames),
+    avgMargin: mean(p.normalMarginSum, p.normalWins),
+    maxMargin: p.maxMargin,
+    maxTotal: p.maxTotal,
+    minWinningTotal: isFinite(p.minWinningTotal.value) ? p.minWinningTotal : { value: 0, gameId: null },
+    categories: Object.fromEntries(
+      categories.map((cat): [string, CategoryRecord] => {
+        const c = p.categories.get(cat)!;
+        return [cat, { avg: mean(c.sum, categoryGameCounts.get(cat)!), max: c.max }];
+      }),
+    ),
+  });
 
   return {
-    totalGames: n,
-    wins: { wifey: winsWifey, hubby: winsHubby },
-    perfectGames: { wifey: perfectGamesWifey, hubby: perfectGamesHubby },
+    totalGames,
     pureDraws,
-    currentStreak,
-    avgMarginWifey: normalWinsWifey > 0 ? totalMarginWifey / normalWinsWifey : 0,
-    avgMarginHubby: normalWinsHubby > 0 ? totalMarginHubby / normalWinsHubby : 0,
-    maxTotalWifey,
-    maxTotalWifeyGameId,
-    maxTotalHubby,
-    maxTotalHubbyGameId,
-    maxMarginWifey,
-    maxMarginWifeyGameId,
-    maxMarginHubby,
-    maxMarginHubbyGameId,
-    minWinningTotalWifey: isFinite(minWinningTotalWifey) ? minWinningTotalWifey : 0,
-    minWinningTotalWifeyGameId,
-    minWinningTotalHubby: isFinite(minWinningTotalHubby) ? minWinningTotalHubby : 0,
-    minWinningTotalHubbyGameId,
-    maxScoreByCategory,
-    avgScoreByCategory,
+    players: { wifey: finalise(acc.wifey), hubby: finalise(acc.hubby) },
+    categories,
     universalCategories,
+    currentStreak,
     runningHistory,
-    drawSummary,
   };
 }

@@ -1,14 +1,14 @@
 import type { Player } from "@/types/domain";
-import type { RunningEntry, Streak } from "@/types/tally";
+import type { Metric, RunningEntry, Streak } from "@/types/tally";
 
-/** A single global metric: its signed value, who it favours, and the game it was last reached in. */
-export interface GlobalMetric {
-  /** Signed value — positive favours wifey, negative favours hubby (streaks are unsigned). */
-  value: number;
+/**
+ * A global metric: a `Metric` plus who holds it. Unlike tally metrics, `value`
+ * is signed (positive favours wifey, negative hubby; streaks are unsigned) and
+ * `gameId` is the game it was *last* attained in — null for current values.
+ */
+export interface GlobalMetric extends Metric {
   /** Leader/holder of the value; null when level. */
   holder: Player | null;
-  /** Game in which the value was last attained; null for current values or empty history. */
-  gameId: number | null;
 }
 
 /** A record held separately by each player. */
@@ -70,7 +70,7 @@ export function computeGlobalStats(
   history: RunningEntry[],
   currentStreak: Streak,
 ): GlobalStats {
-  const tallyOf = (e: RunningEntry): number => e.cumulativeWinsWifey - e.cumulativeWinsHubby;
+  const tallyOf = (e: RunningEntry): number => e.cumulativeWins.wifey - e.cumulativeWins.hubby;
   const marginOf = (e: RunningEntry): number => e.cumulativeMargin;
   const latest = history[history.length - 1];
 

@@ -9,6 +9,7 @@
  */
 import { VALID_CATEGORIES, type ValidCategory } from "@/types/categories";
 import type { RawGame, RawScore } from "@/types/raw";
+import { PLAYERS, type Player } from "@/types/domain";
 
 /** A game as submitted by a client — the server owns `game_id`. */
 export type GameInput = Omit<RawGame, "game_id">;
@@ -22,9 +23,6 @@ export interface ValidationError {
 export type ValidationResult =
   | { valid: true; game: GameInput }
   | { valid: false; errors: ValidationError[] };
-
-const PLAYERS = ["wifey", "hubby"] as const;
-type PlayerKey = (typeof PLAYERS)[number];
 
 const DRAW_RESULTS: ReadonlyArray<NonNullable<RawGame["drawResult"]>> = ["hubby", "wifey", "draw"];
 const ALLOWED_TOP_LEVEL_FIELDS = new Set(["game_id", "players", "drawResult"]);
@@ -77,7 +75,7 @@ export function validateGameInput(input: unknown): ValidationResult {
   }
   if (structuralErrors.length > 0) return { valid: false, errors: structuralErrors };
 
-  const scores = players as Record<PlayerKey, Record<string, unknown>>;
+  const scores = players as Record<Player, Record<string, unknown>>;
 
   // ── Phase 2: categories ──
   const categoryErrors = validateCategories(scores);
@@ -87,7 +85,7 @@ export function validateGameInput(input: unknown): ValidationResult {
   const scoreErrors = validateScores(scores);
   if (scoreErrors.length > 0) return { valid: false, errors: scoreErrors };
 
-  const typedScores = scores as Record<PlayerKey, RawScore>;
+  const typedScores = scores as Record<Player, RawScore>;
 
   // ── Phase 4: outcome ──
   const drawResultErrors = validateDrawResult(input.drawResult, typedScores);
@@ -97,7 +95,7 @@ export function validateGameInput(input: unknown): ValidationResult {
 }
 
 /** Both players must score the same, non-empty set of known categories. */
-function validateCategories(scores: Record<PlayerKey, Record<string, unknown>>): ValidationError[] {
+function validateCategories(scores: Record<Player, Record<string, unknown>>): ValidationError[] {
   const errors: ValidationError[] = [];
   const wifeyKeys = Object.keys(scores.wifey);
   const hubbyKeys = Object.keys(scores.hubby);
@@ -126,7 +124,7 @@ function validateCategories(scores: Record<PlayerKey, Record<string, unknown>>):
  * Scores must be non-negative integers. Strings are rejected outright rather
  * than coerced — a numeric string would silently concatenate in totals.
  */
-function validateScores(scores: Record<PlayerKey, Record<string, unknown>>): ValidationError[] {
+function validateScores(scores: Record<Player, Record<string, unknown>>): ValidationError[] {
   const errors: ValidationError[] = [];
   for (const player of PLAYERS) {
     for (const [category, value] of Object.entries(scores[player])) {
@@ -145,7 +143,7 @@ function validateScores(scores: Record<PlayerKey, Record<string, unknown>>): Val
  * `drawResult` is required exactly when totals are equal, and forbidden
  * otherwise — a stale value on a decided game would misrepresent the outcome.
  */
-function validateDrawResult(drawResult: unknown, scores: Record<PlayerKey, RawScore>): ValidationError[] {
+function validateDrawResult(drawResult: unknown, scores: Record<Player, RawScore>): ValidationError[] {
   const isTie = total(scores.wifey) === total(scores.hubby);
 
   if (drawResult === undefined) {
@@ -165,7 +163,7 @@ function validateDrawResult(drawResult: unknown, scores: Record<PlayerKey, RawSc
  * players, wifey before hubby, categories in VALID_CATEGORIES order), dropping
  * anything not explicitly copied.
  */
-function canonicalise(scores: Record<PlayerKey, RawScore>, drawResult: GameInput["drawResult"]): GameInput {
+function canonicalise(scores: Record<Player, RawScore>, drawResult: GameInput["drawResult"]): GameInput {
   const ordered = (score: RawScore): RawScore =>
     Object.fromEntries(VALID_CATEGORIES.filter((c) => c in score).map((c) => [c, score[c]]));
 

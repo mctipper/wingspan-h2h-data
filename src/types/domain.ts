@@ -1,4 +1,6 @@
-export type Player = "hubby" | "wifey";
+/** Canonical player order (wifey first, matching every table and chart). */
+export const PLAYERS = ["wifey", "hubby"] as const;
+export type Player = (typeof PLAYERS)[number];
 
 export interface CategoryScore {
   category: string;
@@ -12,8 +14,8 @@ export interface CategoryScore {
 export interface GameResult {
   gameId: number;
   categories: CategoryScore[];
-  totalHubby: number;
-  totalWifey: number;
+  /** Sum of each player's category scores */
+  totals: Record<Player, number>;
   /**
    * The game winner.
    * - "hubby" | "wifey" — won by score, or won via tiebreaker (scores were equal)

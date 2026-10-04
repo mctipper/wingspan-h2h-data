@@ -42,5 +42,13 @@ export function parseGame(raw: RawGame): GameResult {
   // Unreachable for tiebreaker wins (equal totals preclude sweeping every category), so no special case
   const perfect = winner !== "draw" && categories.every((c) => c.winner === winner);
 
-  return { gameId: raw.game_id, categories, totalHubby, totalWifey, winner, tiebreaker, margin, perfect };
+  return {
+    gameId: raw.game_id,
+    categories,
+    totals: { wifey: totalWifey, hubby: totalHubby },
+    winner,
+    tiebreaker,
+    margin,
+    perfect,
+  };
 }

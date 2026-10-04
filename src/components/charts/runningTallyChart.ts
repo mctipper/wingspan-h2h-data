@@ -29,7 +29,7 @@ export function renderRunningTallyChart(
 
   const labels = runningHistory.map((e) => String(e.gameId));
   const data = runningHistory.map(
-    (e) => e.cumulativeWinsWifey - e.cumulativeWinsHubby,
+    (e) => e.cumulativeWins.wifey - e.cumulativeWins.hubby,
   );
 
   // Max/min value for axis
