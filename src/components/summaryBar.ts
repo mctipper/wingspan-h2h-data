@@ -44,6 +44,8 @@ type Card = {
   value: string;
   sub?: string;
   modifier: string;
+  /** Extra class naming the card's grid area (used by the Overall block's explicit placement) */
+  area?: string;
   best?: boolean;
   subBest?: boolean;
   labelItalic?: boolean;
@@ -68,7 +70,7 @@ function cardHtml(c: Card): string {
       : c.sub
     : "";
   return `
-    <div class="stat-card ${c.modifier}">
+    <div class="stat-card ${c.modifier}${c.area ? ` ${c.area}` : ""}">
       ${labelHtml}
       <span class="${valueClass}">${valueHtml}</span>
       ${c.sub !== undefined ? `<span class="${subClass}">${subHtml}</span>` : ""}
@@ -107,6 +109,21 @@ function pairedRows(label: string, rowA: string, rowB: string, extraClass = "", 
   </div>`;
 }
 
+/**
+ * Overall: a single grid (placed by CSS area classes) holding the totals, two player
+ * subheaders and their cards — flat so desktop and mobile can re-arrange it freely.
+ */
+function overallBlock(cards: Card[]): string {
+  return `<div class="summary-paired summary-paired--overall">
+    <span class="summary-paired__label">Overall</span>
+    <div class="overall-grid">
+      <span class="summary-paired__subhead summary-paired__subhead--wifey ov-head-wifey">Wifey</span>
+      <span class="summary-paired__subhead summary-paired__subhead--hubby ov-head-hubby">Hubby</span>
+      ${cards.map(cardHtml).join("")}
+    </div>
+  </div>`;
+}
+
 /** Globals: one unlabelled current row, then a wifey and a hubby row of per-topic maxes. */
 function globalsBlock(currentRow: string, wifeyMaxRow: string, hubbyMaxRow: string): string {
   return `<div class="summary-paired summary-paired--globals">
@@ -129,6 +146,8 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
     runningHistory,
     avgMarginWifey,
     avgMarginHubby,
+    maxMarginWifey,
+    maxMarginHubby,
     maxScoreByCategory,
     avgScoreByCategory,
     universalCategories,
@@ -138,50 +157,58 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   const tbWifey = drawSummary.tiebreakerWins.wifey;
   const tbHubby = drawSummary.tiebreakerWins.hubby;
 
-  // ── Overall: headline counts, then wifey/hubby pairs per metric ──
-  const overallTopRow = simpleRow("", [
-    { label: "Total Games", value: String(totalGames), modifier: "stat-card--neutral" },
-    {
-      label: "Wifey Wins",
-      value: String(wins.wifey),
-      sub: tbWifey > 0 ? `${tbWifey} tiebreaker${tbWifey !== 1 ? "s" : ""}` : undefined,
-      modifier: "stat-card--wifey",
-    },
-    {
-      label: "Hubby Wins",
-      value: String(wins.hubby),
-      sub: tbHubby > 0 ? `${tbHubby} tiebreaker${tbHubby !== 1 ? "s" : ""}` : undefined,
-      modifier: "stat-card--hubby",
-    },
-    { label: "Pure Draws", value: String(pureDraws), modifier: "stat-card--neutral" },
-  ], "summary-row--current");
-
-  // Tied values both earn the asterisk
+  // ── Overall: Total Games (with pure draws as subtext) beside a wifey and a hubby line of four cards ──
   const avgOverallWifey = avgScoreByCategory[0]?.wifey ?? 0;
   const avgOverallHubby = avgScoreByCategory[0]?.hubby ?? 0;
   const perfectsTooltip = "Games where a player won every single category";
+  const tbSub = (n: number): string | undefined =>
+    n > 0 ? `${n} tiebreaker${n !== 1 ? "s" : ""}` : undefined;
 
-  /** One metric as a wifey card followed by a hubby card, so a 2-column grid yields one row per metric. */
-  const playerPair = (
-    label: string,
-    wifeyValue: string,
-    hubbyValue: string,
-    wifeyBest: boolean,
-    hubbyBest: boolean,
-    tooltip?: string,
-  ): Card[] => [
-    { label, value: wifeyValue, sub: "Wifey", modifier: "stat-card--wifey", best: wifeyBest, tooltip },
-    { label, value: hubbyValue, sub: "Hubby", modifier: "stat-card--hubby", best: hubbyBest, tooltip },
+  /** A player's four cards; tied values both earn the asterisk. The player's subheader names them. */
+  const overallPlayerCards = (
+    player: "wifey" | "hubby",
+    other: "wifey" | "hubby",
+    avgScore: [number, number],
+    avgMargin: [number, number],
+    maxMargin: { value: number; otherValue: number; gameId: number | null },
+    tiebreakers: number,
+  ): Card[] => {
+    const modifier = `stat-card--${player}`;
+    const slot = (name: string): string => `ov-${player}-${name}`;
+    return [
+      { label: "Wins", value: String(wins[player]), sub: tbSub(tiebreakers), modifier, area: slot("wins") },
+      { label: "Avg Score", value: fmt2(avgScore[0]), modifier, area: slot("score"), best: avgScore[0] >= avgScore[1] },
+      { label: "Avg Margin", value: fmt2(avgMargin[0]), modifier, area: slot("margin"), best: avgMargin[0] >= avgMargin[1] },
+      {
+        label: "Max Margin",
+        value: String(maxMargin.value),
+        modifier,
+        area: slot("maxmargin"),
+        best: maxMargin.value >= maxMargin.otherValue,
+        gameId: maxMargin.gameId,
+      },
+      {
+        label: "Perfects",
+        value: String(perfectGames[player]),
+        modifier,
+        area: slot("perfects"),
+        best: perfectGames[player] >= perfectGames[other],
+        tooltip: perfectsTooltip,
+      },
+    ];
+  };
+
+  const overallCards: Card[] = [
+    {
+      label: "Total Games",
+      value: String(totalGames),
+      sub: `${pureDraws} pure draw${pureDraws !== 1 ? "s" : ""}`,
+      modifier: "stat-card--neutral",
+      area: "ov-total",
+    },
+    ...overallPlayerCards("wifey", "hubby", [avgOverallWifey, avgOverallHubby], [avgMarginWifey, avgMarginHubby], { value: maxMarginWifey, otherValue: maxMarginHubby, gameId: tally.maxMarginWifeyGameId }, tbWifey),
+    ...overallPlayerCards("hubby", "wifey", [avgOverallHubby, avgOverallWifey], [avgMarginHubby, avgMarginWifey], { value: maxMarginHubby, otherValue: maxMarginWifey, gameId: tally.maxMarginHubbyGameId }, tbHubby),
   ];
-
-  const overallPairsRow = simpleRow("", [
-    ...playerPair("Avg Score", fmt2(avgOverallWifey), fmt2(avgOverallHubby),
-      avgOverallWifey >= avgOverallHubby, avgOverallHubby >= avgOverallWifey),
-    ...playerPair("Avg Margin", fmt2(avgMarginWifey), fmt2(avgMarginHubby),
-      avgMarginWifey >= avgMarginHubby, avgMarginHubby >= avgMarginWifey),
-    ...playerPair("Perfects", String(perfectGames.wifey), String(perfectGames.hubby),
-      perfectGames.wifey >= perfectGames.hubby, perfectGames.hubby >= perfectGames.wifey, perfectsTooltip),
-  ], "summary-row--overall-pairs");
 
   // ── Category rows — avg as main value, max as subtext ────
   const catStats = maxScoreByCategory.slice(1);
@@ -275,7 +302,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   const globalsHubbyRow = simpleRow("", maxCards("hubby"), "summary-row--globals");
 
   el.innerHTML =
-    pairedRows("Overall", overallTopRow, overallPairsRow, "summary-paired--overall") +
+    overallBlock(overallCards) +
     `<div class="summary-section-gap"></div>` +
     pairedRows("Categories", catWifeyRow, catHubbyRow, "", true) +
     `<div class="summary-section-gap"></div>` +

@@ -72,6 +72,29 @@ main {
   gap: 2rem;
 }
 
+/* Full-width section heading: centred, with a thin rule running out to each side */
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
+  /* Pull the heading closer to its content than the 2rem section gap */
+  margin-bottom: -1rem;
+}
+
+.section-heading::before,
+.section-heading::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-colour);
+}
+
 /* ── Summary Bar ─────────────────────────────────────────── */
 
 #summary-bar {
@@ -80,8 +103,11 @@ main {
   gap: 0.35rem;
 }
 
+/* Desktop: a thin rule between sections with only a small margin either side */
 .summary-section-gap {
-  height: 0.65rem;
+  height: 0;
+  margin: 0.2rem 0;
+  border-top: 1px solid var(--border-colour);
 }
 
 .summary-row {
@@ -106,24 +132,6 @@ main {
   width: 1rem;
 }
 
-/* Current row — larger cards, equal width */
-.summary-row--current {
-  flex-wrap: nowrap;
-}
-
-.summary-row--current .stat-card {
-  flex: 1 1 0;
-  padding: 1rem 1.5rem;
-}
-
-.summary-row--current .stat-card__label {
-  font-size: 0.75rem;
-}
-
-.summary-row--current .stat-card__value {
-  font-size: 2.25rem;
-}
-
 /* Paired rows wrapper — single spanning label beside two rows */
 .summary-paired {
   display: flex;
@@ -135,13 +143,12 @@ main {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   writing-mode: vertical-rl;
   text-orientation: mixed;
   transform: rotate(180deg);
   align-self: center;
   padding: 0 0.25rem;
-  opacity: 0.6;
   flex-shrink: 0;
   width: 1rem;
 }
@@ -193,13 +200,40 @@ main {
   color: var(--colour-hubby);
 }
 
-/* Overall pairs — avg score / avg margin / perfects as wifey+hubby pairs, six across */
-.summary-row--overall-pairs {
+/* Overall — desktop: [totals | subhead | five card columns].
+   A wifey line and a hubby line each take half the height (3 of 6 tracks); Total Games
+   spans both lines. */
+.overall-grid {
+  flex: 1;
+  min-width: 0;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.75rem;
-  align-items: stretch;
+  grid-template-columns: 1.2fr 1rem repeat(5, 1fr);
+  grid-template-rows: repeat(6, auto);
+  gap: 0.35rem 0.75rem;
 }
+
+.overall-grid .summary-paired__subhead {
+  align-self: center;
+}
+
+.ov-total { grid-column: 1; grid-row: 1 / 7; justify-content: center; }
+
+.ov-total .stat-card__value { font-size: 2.25rem; }
+.ov-total .stat-card__label { font-size: 0.75rem; }
+
+.ov-head-wifey { grid-column: 2; grid-row: 1 / 4; }
+.ov-wifey-wins { grid-column: 3; grid-row: 1 / 4; }
+.ov-wifey-score { grid-column: 4; grid-row: 1 / 4; }
+.ov-wifey-margin { grid-column: 5; grid-row: 1 / 4; }
+.ov-wifey-perfects { grid-column: 7; grid-row: 1 / 4; }
+.ov-wifey-maxmargin { grid-column: 6; grid-row: 1 / 4; }
+
+.ov-head-hubby { grid-column: 2; grid-row: 4 / 7; }
+.ov-hubby-wins { grid-column: 3; grid-row: 4 / 7; }
+.ov-hubby-score { grid-column: 4; grid-row: 4 / 7; }
+.ov-hubby-margin { grid-column: 5; grid-row: 4 / 7; }
+.ov-hubby-perfects { grid-column: 7; grid-row: 4 / 7; }
+.ov-hubby-maxmargin { grid-column: 6; grid-row: 4 / 7; }
 
 /* Category rows — stretch cards to fill line, sits inside .summary-paired */
 .summary-row--categories {
@@ -603,39 +637,40 @@ tr.row--draw:hover             { background: var(--row-draw-hover); }
 
 /* Transpose: when summary bar can't fit full width, flip layout */
 @media (max-width: 900px) {
-  /* Overall top row: Total Games on its own line, then wins/draws three across */
-  .summary-row--current {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.35rem;
+  /* Page header loses its underline on mobile; section headers carry the dividers */
+  header {
+    border-bottom: none;
   }
 
-  .summary-row--current .stat-card:first-child {
-    grid-column: 1 / -1;
-  }
-
-  /* Overall pairs: one metric per line, wifey left and hubby right */
-  .summary-row--overall-pairs {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.35rem;
-  }
-
+  /* Overall — mobile: totals across the top, then wifey (cols 1-2) and hubby (cols 3-4) as side-by-side stacks, one card per row */
   .summary-paired--overall .summary-paired__rows {
     grid-template-columns: 1fr;
   }
 
-  .summary-row--current .stat-card {
-    width: 100%;
+  .overall-grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
+    gap: 0.35rem;
   }
 
-  /* Desktop sets a larger Current label at higher specificity; match the other cards here */
-  .summary-row--current .stat-card__label {
-    font-size: 0.5rem;
-  }
+  .ov-total { grid-column: 1 / -1; grid-row: 1; }
+  .ov-total .stat-card__value { font-size: 1.4rem; }
+  .ov-total .stat-card__label { font-size: 0.5rem; }
 
-  .summary-row--current .stat-card__value {
-    font-size: 1.4rem;
-  }
+  .ov-head-wifey { grid-column: 1 / 3; grid-row: 2; }
+  .ov-head-hubby { grid-column: 3 / 5; grid-row: 2; }
+
+  .ov-wifey-wins { grid-column: 1 / 3; grid-row: 3; }
+  .ov-wifey-score { grid-column: 1 / 3; grid-row: 4; }
+  .ov-wifey-margin { grid-column: 1 / 3; grid-row: 5; }
+  .ov-wifey-maxmargin { grid-column: 1 / 3; grid-row: 6; }
+  .ov-wifey-perfects { grid-column: 1 / 3; grid-row: 7; }
+
+  .ov-hubby-wins { grid-column: 3 / 5; grid-row: 3; }
+  .ov-hubby-score { grid-column: 3 / 5; grid-row: 4; }
+  .ov-hubby-margin { grid-column: 3 / 5; grid-row: 5; }
+  .ov-hubby-maxmargin { grid-column: 3 / 5; grid-row: 6; }
+  .ov-hubby-perfects { grid-column: 3 / 5; grid-row: 7; }
 
   /* Ensure card labels are visible and shrink text on mobile */
   .stat-card__label {
@@ -646,8 +681,7 @@ tr.row--draw:hover             { background: var(--row-draw-hover); }
   }
 
   /* Card sizing shared with Globals: no min-height, tight padding */
-  .stat-card,
-  .summary-row--current .stat-card {
+  .stat-card {
     min-height: 0;
     padding: 0.5rem 0.4rem;
   }
@@ -687,13 +721,33 @@ tr.row--draw:hover             { background: var(--row-draw-hover); }
     gap: 0.5rem;
   }
 
+  /* Centred section header with a thin rule running out to each side */
   .summary-paired__label {
     writing-mode: horizontal-tb;
     transform: none;
     width: auto;
     font-size: 0.7rem;
-    padding: 0.25rem 0.25rem 0;
-    align-self: flex-start;
+    padding: 0.25rem 0 0;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .summary-paired__label::before,
+  .summary-paired__label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border-colour);
+  }
+
+  /* The header rules already divide sections on mobile, so the desktop rule becomes plain spacing */
+  .summary-section-gap {
+    height: 0.35rem;
+    margin: 0;
+    border-top: 0;
   }
 
   /* The two rows become a 2-column grid: wifey left, hubby right, cards aligned per-metric */
