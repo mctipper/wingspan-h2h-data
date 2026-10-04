@@ -1,4 +1,5 @@
 import type { RawGame } from "@/types/raw";
+import type { GameInput } from "@/validation/gameValidator";
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options);
@@ -19,7 +20,7 @@ export async function fetchGames(): Promise<RawGame[]> {
   return request<RawGame[]>("/api/games");
 }
 
-export async function createGame(game: Omit<RawGame, "game_id">): Promise<RawGame> {
+export async function createGame(game: GameInput): Promise<RawGame> {
   return request<RawGame>("/api/games", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -27,7 +28,7 @@ export async function createGame(game: Omit<RawGame, "game_id">): Promise<RawGam
   });
 }
 
-export async function updateGame(id: number, game: RawGame): Promise<RawGame> {
+export async function updateGame(id: number, game: GameInput): Promise<RawGame> {
   return request<RawGame>(`/api/games/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

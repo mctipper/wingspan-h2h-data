@@ -2,7 +2,7 @@ import type { RawGame } from "@/types/raw";
 import { VALID_CATEGORIES } from "@/types/categories";
 import { createGame, updateGame } from "@admin/api/client";
 import { showToast } from "@admin/components/toast";
-import { validateGame } from "@admin/validation/gameValidator";
+import { validateGameInput, type GameInput } from "@/validation/gameValidator";
 
 interface CategoryRowState {
   name: string;
@@ -47,25 +47,24 @@ export function renderGameForm(
     return VALID_CATEGORIES.filter((cat) => !used.has(cat));
   }
 
-  function buildRawGame(): RawGame {
+  /**
+   * Snapshots form state as an unvalidated submission. Blank scores become 0;
+   * ordering and stray-field stripping are left to the validator's canonicalisation.
+   */
+  function buildGameInput(): GameInput {
     const hubby: Record<string, number> = {};
     const wifey: Record<string, number> = {};
 
-    // Sort rows by VALID_CATEGORIES order before building
-    const sortedRows = [...rows].sort(
-      (a, b) => VALID_CATEGORIES.indexOf(a.name as any) - VALID_CATEGORIES.indexOf(b.name as any)
-    );
-
-    for (const row of sortedRows) {
+    for (const row of rows) {
       const name = String(row.name).trim();
       wifey[name] = Number(row.wifey);
       hubby[name] = Number(row.hubby);
     }
-    const base: RawGame = { game_id: nextId, players: { wifey, hubby } };
+    const input: GameInput = { players: { wifey, hubby } };
     if (drawResult) {
-      base.drawResult = drawResult as RawGame["drawResult"];
+      input.drawResult = drawResult as GameInput["drawResult"];
     }
-    return base;
+    return input;
   }
 
   function updateTotals() {
@@ -83,13 +82,12 @@ export function renderGameForm(
     // Enable/disable draw result dropdown
     const drawResultDropdown = document.getElementById("draw-result") as HTMLSelectElement;
     if (drawResultDropdown) {
-      if ((totalWifey === 0 || totalHubby ===0)) {
-        drawResultDropdown.disabled = true;
-      }
-      else if (totalWifey === totalHubby) {
-        drawResultDropdown.disabled = false;
-      } else {
-        drawResultDropdown.disabled = true;
+      const isTie = totalWifey === totalHubby && totalWifey !== 0;
+      drawResultDropdown.disabled = !isTie;
+      // A draw result is only valid on a tie; clear it so a stale pick isn't submitted
+      if (!isTie) {
+        drawResult = "";
+        drawResultDropdown.value = "";
       }
     }
   }
@@ -223,6 +221,8 @@ export function renderGameForm(
 
   const rowsContainer = document.getElementById("category-rows-container")!;
   renderRows(rowsContainer);
+  // Sync the draw dropdown with seeded scores (enables it when editing a tied game)
+  updateTotals();
 
   document.getElementById("draw-result")?.addEventListener("change", (e) => {
     drawResult = (e.target as HTMLSelectElement).value;
@@ -238,14 +238,13 @@ export function renderGameForm(
 
   document.getElementById("game-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const raw = buildRawGame();
-    const { valid, errors } = validateGame(raw);
+    const result = validateGameInput(buildGameInput());
 
     const errorsEl = document.getElementById("form-errors")!;
-    if (!valid) {
+    if (!result.valid) {
       errorsEl.style.display = "";
-      errorsEl.innerHTML = errors.map((err) => `<div>${escHtml(err.message)}</div>`).join("");
-      submitErrors = errors.map((err) => err.message);
+      errorsEl.innerHTML = result.errors.map((err) => `<div>${escHtml(err.message)}</div>`).join("");
+      submitErrors = result.errors.map((err) => err.message);
       return;
     }
 
@@ -257,10 +256,10 @@ export function renderGameForm(
 
     try {
       if (isEdit) {
-        await updateGame(nextId, raw);
+        await updateGame(nextId, result.game);
         showToast(`Game #${nextId} updated successfully`, "success");
       } else {
-        await createGame(raw);
+        await createGame(result.game);
         showToast(`Game #${nextId} added successfully`, "success");
       }
       // Add a delay after successful save to allow seeing the toast
