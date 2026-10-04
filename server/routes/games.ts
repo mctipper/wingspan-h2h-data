@@ -1,7 +1,7 @@
 import { Router, type Response } from "express";
-import { gamesStore } from "../lib/gamesStore.js";
-import { validateGameInput, type ValidationError } from "../../src/validation/gameValidator.js";
-import type { RawGame } from "../../src/types/raw.js";
+import { gamesStore } from "@server/lib/gamesStore";
+import { validateGameInput, type ValidationError } from "@/validation/gameValidator";
+import type { RawGame } from "@/types/raw";
 
 export const gamesRouter = Router();
 

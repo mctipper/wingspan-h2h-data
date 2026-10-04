@@ -1,6 +1,6 @@
 import { open, readFile, rename, unlink } from "fs/promises";
 import { basename, dirname, join, resolve } from "path";
-import type { RawGame } from "../../src/types/raw.js";
+import type { RawGame } from "@/types/raw";
 
 /** What a transaction decided: persist a new game list, or leave the file untouched. */
 export type TransactionOutcome<T> =

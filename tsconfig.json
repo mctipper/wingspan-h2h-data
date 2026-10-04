@@ -12,6 +12,7 @@
     "types": ["vite/client"],
     "paths": {
       "@admin/*": ["./src/admin/*"],
+      "@server/*": ["./server/*"],
       "@/*": ["./src/*"]
     }
   },

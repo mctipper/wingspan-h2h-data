@@ -1,5 +1,5 @@
 import express from "express";
-import { gamesRouter } from "./routes/games.js";
+import { gamesRouter } from "@server/routes/games";
 
 const app = express();
 app.use(express.json());
