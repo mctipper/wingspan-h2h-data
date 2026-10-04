@@ -1,9 +1,9 @@
 import type { RawGame } from "@/types/raw";
-import { SPECIAL_CATEGORIES, SPECIAL_CATEGORY_COLOUR } from "@/styles/design";
 import { deleteGame } from "@admin/api/client";
 import { showToast } from "@admin/components/toast";
 import { parseGame } from "@/data/parseGame";
 import { outcomeStyle } from "@/components/outcome";
+import { specialCategoryCells, specialCategoryHeaders } from "@/components/specialCategoryColumns";
 
 /**
  * Renders the admin games table (newest first) with edit/delete actions into
@@ -20,20 +20,13 @@ export function renderGameList(el: HTMLElement, games: RawGame[], onDelete: () =
       // "*" marks a tiebreaker win in the admin list
       const winnerText = label + (tiebreaker ? "*" : "");
 
-      const catSet = new Set(categories.map((c) => c.category));
-      const specialTicks = SPECIAL_CATEGORIES.map((cat) =>
-        catSet.has(cat)
-          ? `<td><span style="color:${SPECIAL_CATEGORY_COLOUR[cat]};font-weight:700;" title="${cat}">✓</span></td>`
-          : `<td></td>`
-      ).join("");
-
       return `
         <tr class="${rowClass}">
           <td>${gameId}</td>
           <td>${winnerText}</td>
           <td style="color:var(--colour-wifey)">${totals.wifey}</td>
           <td style="color:var(--colour-hubby)">${totals.hubby}</td>
-          ${specialTicks}
+          ${specialCategoryCells(categories)}
           <td>
             <div class="row-actions">
               <a href="#edit/${gameId}" class="btn btn--secondary btn--icon" title="Edit">Edit</a>
@@ -59,9 +52,7 @@ export function renderGameList(el: HTMLElement, games: RawGame[], onDelete: () =
                 <th>Winner</th>
                 <th>Wifey</th>
                 <th>Hubby</th>
-                <th title="Nectar">N</th>
-                <th title="Duet">D</th>
-                <th title="Hummingbirds">H</th>
+                ${specialCategoryHeaders()}
                 <th style="text-align:center">Actions</th>
               </tr>
             </thead>

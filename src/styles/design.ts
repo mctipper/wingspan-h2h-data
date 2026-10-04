@@ -1,4 +1,5 @@
 /** Centralised design config — import from here, never hardcode elsewhere. */
+import type { SpecialCategory } from "@/types/categories";
 
 export const COLOURS = {
   wifey: "#4a90d9",
@@ -71,9 +72,7 @@ export function markAppReady(): void {
   document.getElementById("app-loading")?.setAttribute("aria-hidden", "true");
 }
 
-export const SPECIAL_CATEGORIES = ["Nectar", "Duet", "Hummingbirds"] as const;
-export type SpecialCategory = (typeof SPECIAL_CATEGORIES)[number];
-
+/** Tick colour per special category; exhaustive over the registry, so a new special category won't compile without one. */
 export const SPECIAL_CATEGORY_COLOUR: Record<SpecialCategory, string> = {
   Nectar: COLOURS.nectar,
   Duet: COLOURS.duet,

@@ -1,8 +1,8 @@
 import type { GameResult } from "@/types/domain";
 import type { RunningEntry } from "@/types/tally";
-import { SPECIAL_CATEGORY_COLOUR } from "@/styles/design";
 import { getAnalysisUrl } from "@/utils/urls";
 import { outcomeStyle } from "@/components/outcome";
+import { specialCategoryCells, specialCategoryHeaders } from "@/components/specialCategoryColumns";
 
 export function renderGamesTable(
   results: GameResult[],
@@ -41,14 +41,6 @@ export function renderGamesTable(
             : String(entry.cumulativeMargin))
         : "—";
 
-      // Special category ticks
-      const catSet = new Set(categories.map((c) => c.category));
-      function specialTick(catName: keyof typeof SPECIAL_CATEGORY_COLOUR): string {
-        if (!catSet.has(catName)) return "";
-        const colour = SPECIAL_CATEGORY_COLOUR[catName];
-        return `<span style="color:${colour};font-weight:700;" title="${catName}">✓</span>`;
-      }
-
       return `
         <tr class="${rowClass}" data-game-id="${gameId}">
           <td><a href="${getAnalysisUrl(gameId)}" style="color:inherit;text-decoration:none;text-decoration:underline;" title="View analysis">${gameId}</a></td>
@@ -59,9 +51,7 @@ export function renderGamesTable(
           <td>${streakText}</td>
           <td>${runWins}</td>
           <td>${runMargin}</td>
-          <td>${specialTick("Nectar")}</td>
-          <td>${specialTick("Duet")}</td>
-          <td>${specialTick("Hummingbirds")}</td>
+          ${specialCategoryCells(categories)}
         </tr>`;
     })
     .join("");
@@ -78,9 +68,7 @@ export function renderGamesTable(
           <th>Streak</th>
           <th title="Cumulative win difference (positive = Wifey ahead)">Cum. Wins</th>
           <th title="Cumulative score margin (positive = Wifey ahead)">Cum. Margin</th>
-          <th title="Nectar">N</th>
-          <th title="Duet">D</th>
-          <th title="Hummingbirds">H</th>
+          ${specialCategoryHeaders()}
         </tr>
       </thead>
       <tbody>
