@@ -143,7 +143,7 @@ function globalsBlock(currentRow: string, wifeyMaxRow: string, hubbyMaxRow: stri
 export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   const { totalGames, pureDraws, players, categories, universalCategories, globals } = tally;
 
-  // ── Overall: Total Games (with pure draws as subtext) beside a wifey and a hubby line of five cards ──
+  // ── Overall: Total Games (with pure draws as subtext) beside a wifey and a hubby line of six cards ──
   const perfectsTooltip = "Games where a player won every single category";
   const tbSub = (n: number): string | undefined =>
     n > 0 ? `${n} tiebreaker${n !== 1 ? "s" : ""}` : undefined;
@@ -157,6 +157,14 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
     return [
       { label: "Wins", value: String(mine.wins), sub: tbSub(mine.tiebreakerWins), modifier, area: slot("wins") },
       { label: "Avg Score", value: fmt2(mine.avgScore), modifier, area: slot("score"), best: mine.avgScore >= theirs.avgScore },
+      {
+        label: "Max Score",
+        value: String(mine.maxTotal.value),
+        modifier,
+        area: slot("maxscore"),
+        best: mine.maxTotal.value >= theirs.maxTotal.value,
+        gameId: mine.maxTotal.gameId,
+      },
       { label: "Avg Margin", value: fmt2(mine.avgMargin), modifier, area: slot("margin"), best: mine.avgMargin >= theirs.avgMargin },
       {
         label: "Max Margin",
