@@ -154,6 +154,45 @@ main {
   min-width: 0;
 }
 
+/* Wifey / hubby line: vertical coloured subheader beside its row */
+.summary-paired__line {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.summary-paired__line > .summary-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.summary-paired__subhead {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  align-self: center;
+  flex-shrink: 0;
+  width: 1rem;
+  text-align: center;
+}
+
+.summary-paired__subhead--wifey {
+  color: var(--colour-wifey);
+}
+
+/* Occupies the subheader slot so the unlabelled current row stays column-aligned */
+.summary-paired__subhead--spacer {
+  visibility: hidden;
+}
+
+.summary-paired__subhead--hubby {
+  color: var(--colour-hubby);
+}
+
 /* Records rows — no label column, sits inside .summary-paired */
 .summary-row--records {
   display: grid;
@@ -200,6 +239,11 @@ main {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Short label variants are mobile-only */
+.label-short {
+  display: none;
 }
 
 .stat-card__label--italic {
@@ -567,20 +611,50 @@ tr.row--draw:hover             { background: var(--row-draw-hover); }
 
   .summary-row--current .stat-card {
     width: 100%;
-    padding: 0.75rem 1.5rem;
-    min-height: 100px;
+  }
+
+  /* Desktop sets a larger Current label at higher specificity; match the other cards here */
+  .summary-row--current .stat-card__label {
+    font-size: 0.5rem;
   }
 
   .summary-row--current .stat-card__value {
-    font-size: 1.75rem;
+    font-size: 1.4rem;
   }
 
   /* Ensure card labels are visible and shrink text on mobile */
   .stat-card__label {
-    font-size: 0.62rem;
+    font-size: 0.5rem;
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
+  }
+
+  /* Card sizing shared with Globals: no min-height, tight padding */
+  .stat-card,
+  .summary-row--current .stat-card {
+    min-height: 0;
+    padding: 0.5rem 0.4rem;
+  }
+
+  /* Current and Categories rows stack vertically here, so their desktop "flex: 1 1 0" would
+     collapse each card's height to its basis of 0; size to content instead */
+  .summary-row--current .stat-card,
+  .summary-row--categories .stat-card {
+    flex: 0 0 auto;
+  }
+
+  /* Remaining card text shrunk 20% from desktop sizes */
+  .stat-card__value {
+    font-size: 1.2rem;
+  }
+
+  .stat-card__sub {
+    font-size: 0.54rem;
+  }
+
+  .stat-card__sub2 {
+    font-size: 0.5rem;
   }
 
   /* Row label (used on Current row) goes horizontal above */
@@ -613,6 +687,24 @@ tr.row--draw:hover             { background: var(--row-draw-hover); }
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.35rem;
+  }
+
+  /* Wifey / hubby lines become columns: subheader on top, cards beneath */
+  .summary-paired__line {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .summary-paired__subhead {
+    writing-mode: horizontal-tb;
+    transform: none;
+    width: auto;
+    align-self: center;
+    padding: 0 0.25rem;
+  }
+
+  .summary-paired__subhead--spacer {
+    display: none;
   }
 
   /* Each records row becomes a single column of cards */

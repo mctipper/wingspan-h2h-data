@@ -1,5 +1,7 @@
 import type { Tally } from "@/types/tally";
 import { getAnalysisUrl } from "@/utils/urls";
+import { computeGlobalStats } from "@/data/globals";
+import type { GlobalMetric } from "@/data/globals";
 
 function fmt2(n: number): string {
   return n.toFixed(2);
@@ -18,6 +20,24 @@ function streakSub(player: "wifey" | "hubby" | null, length: number): string | u
   const name = player === "wifey" ? "Wifey" : "Hubby";
   return `${name}, ${length} game${length !== 1 ? "s" : ""}`;
 }
+
+/** Absolute display — direction is conveyed by colour and the player name instead of a sign. */
+function fmtAbs(n: number): string {
+  return fmtInt(Math.abs(n));
+}
+
+/** Colour modifier for the holder of a metric; neutral when level or tied. */
+function holderModifier(holder: GlobalMetric["holder"]): string {
+  return holder ? `stat-card--${holder}` : "stat-card--neutral";
+}
+
+function holderName(holder: GlobalMetric["holder"]): string | undefined {
+  if (!holder) return undefined;
+  return holder === "wifey" ? "Wifey" : "Hubby";
+}
+
+/** "Cumulative" collapses to "Cum" on mobile; the swap is done in CSS so no re-render is needed. */
+const CUMULATIVE_LABEL = `<span class="label-full">Cumulative</span><span class="label-short">Cum</span>`;
 
 type Card = {
   label: string;
@@ -71,14 +91,27 @@ function recordsRow(rowLabel: string, cards: Card[]): string {
   </div>`;
 }
 
-/** Wrap two rows with a single spanning vertical label */
-function pairedRows(label: string, rowA: string, rowB: string): string {
-  return `<div class="summary-paired">
+/** One wifey/hubby line: a coloured subheader beside (desktop) or above (mobile) its row. */
+function playerLine(player: "wifey" | "hubby" | null, row: string): string {
+  // A null player renders an empty spacer so unlabelled rows stay column-aligned with labelled ones
+  const name = player === "wifey" ? "Wifey" : player === "hubby" ? "Hubby" : "";
+  return `<div class="summary-paired__line">
+    <span class="summary-paired__subhead summary-paired__subhead--${player ?? "spacer"}">${name}</span>
+    ${row}
+  </div>`;
+}
+
+/**
+ * Wrap two rows with a single spanning vertical label.
+ * With `playerRows`, the rows are treated as wifey (A) then hubby (B) and given subheaders;
+ */
+function pairedRows(label: string, rowA: string, rowB: string, extraClass = "", playerRows = false): string {
+  return `<div class="summary-paired ${extraClass}">
     <span class="summary-paired__label">${label}</span>
     <div class="summary-paired__rows">
-      ${rowA}
-      ${rowB}
-</div>
+      ${playerRows ? playerLine("wifey", rowA) : rowA}
+      ${playerRows ? playerLine("hubby", rowB) : rowB}
+    </div>
   </div>`;
 }
 
@@ -101,6 +134,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
     perfectGames,
     pureDraws,
     currentStreak,
+    runningHistory,
     longestStreakWifey,
     longestStreakHubby,
     maxTotalWifey,
@@ -116,13 +150,6 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
     universalCategories,
     drawSummary,
   } = tally;
-
-  const currentStreakMod =
-    currentStreak.player === "wifey"
-      ? "stat-card--wifey"
-      : currentStreak.player === "hubby"
-        ? "stat-card--hubby"
-        : "stat-card--neutral";
 
   const tbWifey = drawSummary.tiebreakerWins.wifey;
   const tbHubby = drawSummary.tiebreakerWins.hubby;
@@ -149,12 +176,6 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
       sub: perfectGames.wifey > perfectGames.hubby ? `Wifey ${perfectGames.wifey}*` : perfectGames.hubby > perfectGames.wifey ? `Hubby ${perfectGames.hubby}*` : undefined,
       modifier: "stat-card--neutral",
       tooltip: "Games where a player won every single category",
-    },
-    {
-      label: "Current Streak",
-      value: streakLabel(currentStreak.length),
-      sub: streakSub(currentStreak.player, currentStreak.length),
-      modifier: currentStreakMod,
     },
   ], "summary-row--current");
 
@@ -297,7 +318,9 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   el.innerHTML =
     row1 +
     `<div class="summary-section-gap"></div>` +
-    pairedRows("Game Stats", recordsWifeyRow, recordsHubbyRow) +
+    pairedRows("Game Stats", recordsWifeyRow, recordsHubbyRow, "", true) +
+    `<div class="summary-section-gap"></div>` +
+    pairedRows("Categories", catWifeyRow, catHubbyRow, "", true) +
     `<div class="summary-section-gap"></div>` +
     globalsBlock(globalsCurrentRow, globalsWifeyRow, globalsHubbyRow);
 }
