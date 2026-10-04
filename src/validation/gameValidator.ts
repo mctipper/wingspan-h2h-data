@@ -164,6 +164,7 @@ function validateDrawResult(drawResult: unknown, scores: Record<Player, RawScore
  * anything not explicitly copied.
  */
 function canonicalise(scores: Record<Player, RawScore>, drawResult: GameInput["drawResult"]): GameInput {
+  /** Copies a player's scores with keys in registry order. */
   const ordered = (score: RawScore): RawScore =>
     Object.fromEntries(VALID_CATEGORIES.filter((c) => c in score).map((c) => [c, score[c]]));
 

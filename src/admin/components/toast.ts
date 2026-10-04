@@ -1,3 +1,8 @@
+/**
+ * Shows a transient notification that fades out after ~3.5s. Message is set via
+ * `textContent`, so server-provided text is safe to pass. No-op if the page has
+ * no `#toast-container`.
+ */
 export function showToast(message: string, type: "success" | "error"): void {
   const container = document.getElementById("toast-container");
   if (!container) return;

@@ -30,6 +30,10 @@ export class GamesStore {
   /** Tail of the transaction queue; always settles (never rejects) so one failure can't wedge the queue. */
   private queue: Promise<void> = Promise.resolve();
 
+  /**
+   * @param path the games JSON file. Its directory must be writable: atomic
+   * writes create a temp file beside it, and rename only works within one filesystem.
+   */
   constructor(private readonly path: string) {}
 
   /** Current games as stored. */

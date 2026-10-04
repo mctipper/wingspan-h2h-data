@@ -39,7 +39,7 @@ export function renderAnalysisView(
     ? `<a href="${nav.next}" class="analysis-nav-btn" title="Next game">&#8250;</a>`
     : `<span class="analysis-nav-btn analysis-nav-btn--disabled">&#8250;</span>`;
 
-  // Per-category averages across every game containing that category (needed for table and chart)
+  /** A player's all-time average per category (over games containing it), keyed by name — for the table and chart. */
   const averagesOf = (player: Player): Record<string, number> =>
     Object.fromEntries(Object.entries(players[player].categories).map(([cat, rec]) => [cat, rec.avg]));
   const wifeyByCategory = averagesOf("wifey");
@@ -150,9 +150,10 @@ export function renderAnalysisView(
   const wifeyValues = categories.map((c) => c.wifey);
   const hubbyValues = categories.map((c) => c.hubby);
 
-  // Draw value labels at the base of each bar (just right of the axis)
+  /** Draws each bar's value at its base (just right of the axis), so scores read without hovering. */
   const dataLabelsPlugin: Plugin<"bar"> = {
     id: "dataLabels",
+    /** Runs after bars are painted so labels sit on top of them. */
     afterDatasetsDraw(chart) {
       const { ctx } = chart;
       // Only label the first two datasets (actual game values)
@@ -175,9 +176,10 @@ export function renderAnalysisView(
     },
   };
 
-  // Draw black dashed vertical lines at average values on top of each bar
+  /** Overlays a black dashed tick on each bar at that player's category average. */
   const averageLinesPlugin: Plugin<"bar"> = {
     id: "averageLines",
+    /** Runs after bars are painted so the average ticks overlay them; skips hidden datasets. */
     afterDatasetsDraw(chart) {
       const { ctx, scales } = chart;
       if (!scales.x) return;
@@ -278,6 +280,7 @@ export function renderAnalysisView(
         tooltip: {
           ...TOOLTIP_THEME,
           callbacks: {
+            /** Appends the player's category average and their difference from it beneath the score. */
             afterLabel(context) {
               const categoryName = categories[context.dataIndex]?.category;
               const value = context.parsed.x;

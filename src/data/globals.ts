@@ -45,7 +45,9 @@ function playerStreakRecord(history: RunningEntry[], player: Player): GlobalMetr
  * Pure — relies solely on `runningHistory`, so it stays consistent with the charts.
  */
 export function computeGlobalStats(history: RunningEntry[]): GlobalStats {
+  /** Signed running win difference at an entry (positive = wifey ahead). */
   const tallyOf = (e: RunningEntry): number => e.cumulativeWins.wifey - e.cumulativeWins.hubby;
+  /** Signed cumulative points margin at an entry (positive = wifey ahead). */
   const marginOf = (e: RunningEntry): number => e.cumulativeMargin;
   const latest = history[history.length - 1];
   // The latest entry's streak *is* the current streak — no separate input needed

@@ -4,10 +4,12 @@ import { PLAYER_LABEL } from "@/components/outcome";
 import { escapeHtml } from "@/utils/html";
 import { getAnalysisUrl } from "@/utils/urls";
 
+/** Two-decimal display for averages. */
 function fmt2(n: number): string {
   return n.toFixed(2);
 }
 
+/** Whole numbers as-is, anything fractional to one decimal place. */
 function fmtInt(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
@@ -17,6 +19,7 @@ function opponentOf(player: Player): Player {
   return player === "wifey" ? "hubby" : "wifey";
 }
 
+/** Streak length, with an em dash for "no streak" rather than a bare 0. */
 function streakLabel(length: number): string {
   return length === 0 ? "—" : String(length);
 }
@@ -31,6 +34,7 @@ function holderModifier(holder: GlobalMetric["holder"]): string {
   return holder ? `stat-card--${holder}` : "stat-card--neutral";
 }
 
+/** Display name of a metric's holder; undefined when level, so the card omits its subtext. */
 function holderName(holder: GlobalMetric["holder"]): string | undefined {
   return holder ? PLAYER_LABEL[holder] : undefined;
 }
@@ -53,6 +57,7 @@ type Card = {
   tooltip?: string;
 };
 
+/** Markup for one stat card; value and subtext become links when they carry a game id. */
 function cardHtml(c: Card): string {
   const labelClass = `stat-card__label${c.labelItalic ? " stat-card__label--italic" : ""}${c.tooltip ? " stat-card__label--tooltip" : ""}`;
   const valueClass = `stat-card__value${c.best ? " stat-card__value--best" : ""}`;
@@ -75,6 +80,7 @@ function cardHtml(c: Card): string {
     </div>`;
 }
 
+/** A horizontal row of cards, with an optional leading label (empty string for none). */
 function simpleRow(rowLabel: string, cards: Card[], extraClass = ""): string {
   const labelHtml = rowLabel ? `<span class="summary-row__label">${rowLabel}</span>` : "";
   return `<div class="summary-row ${extraClass}">
@@ -145,6 +151,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
 
   // ── Overall: Total Games (with pure draws as subtext) beside a wifey and a hubby line of six cards ──
   const perfectsTooltip = "Games where a player won every single category";
+  /** "N tiebreaker(s)" subtext for the Wins card; omitted when there were none. */
   const tbSub = (n: number): string | undefined =>
     n > 0 ? `${n} tiebreaker${n !== 1 ? "s" : ""}` : undefined;
 
@@ -153,6 +160,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
     const mine = players[player];
     const theirs = players[opponentOf(player)];
     const modifier = `stat-card--${player}`;
+    /** CSS grid-area class placing a card in this player's line of the Overall grid. */
     const slot = (name: string): string => `ov-${player}-${name}`;
     return [
       { label: "Wins", value: String(mine.wins), sub: tbSub(mine.tiebreakerWins), modifier, area: slot("wins") },

@@ -17,6 +17,7 @@ if (mainLink) {
   mainLink.href = getMainUrl();
 }
 
+/** Initial load: fetches games (toasting on failure), renders the current route, then reveals the app. */
 async function bootstrap(): Promise<void> {
   try {
     allGames = await fetchGames();
@@ -27,6 +28,10 @@ async function bootstrap(): Promise<void> {
   markAppReady();
 }
 
+/**
+ * Hash router: `#new` → blank form, `#edit/<id>` → populated form, anything
+ * else → games list. Re-renders `root` from scratch and highlights the active nav link.
+ */
 function route(): void {
   const hash = window.location.hash; // e.g. "#games", "#new", "#edit/3"
   root.innerHTML = "";
@@ -52,6 +57,10 @@ function route(): void {
   });
 }
 
+/**
+ * Refreshes the cached games after a create/update/delete. Does not re-render;
+ * any view update is the caller's responsibility.
+ */
 async function onSave(): Promise<void> {
   try {
     allGames = await fetchGames();

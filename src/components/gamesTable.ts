@@ -4,6 +4,11 @@ import { getAnalysisUrl } from "@/utils/urls";
 import { outcomeStyle } from "@/components/outcome";
 import { specialCategoryCells, specialCategoryHeaders } from "@/components/specialCategoryColumns";
 
+/**
+ * Renders the full games table (newest first) into `el`, replacing its contents.
+ * Each row shows the result plus the running streak, win difference and margin
+ * *as of that game*, looked up from `runningHistory`.
+ */
 export function renderGamesTable(
   results: GameResult[],
   runningHistory: RunningEntry[],

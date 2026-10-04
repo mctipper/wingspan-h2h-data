@@ -11,6 +11,15 @@ interface CategoryRowState {
   hubby: number | "";
 }
 
+/**
+ * Renders the add/edit game form into `el` and owns its state until the next
+ * route change. Pass `existingGame` to edit, or null to create (rows are then
+ * seeded from the latest game's categories, scores blank).
+ *
+ * Submission validates with the shared validator before calling the API, then
+ * awaits `onSave` and navigates back to the list after a short delay so the
+ * success toast is visible.
+ */
 export function renderGameForm(
   el: HTMLElement,
   allGames: RawGame[],
@@ -36,6 +45,7 @@ export function renderGameForm(
   let drawResult: string = existingGame?.drawResult ?? "";
   let submitErrors: string[] = [];
 
+  /** Registry categories not yet used by another row; `excludeIdx` keeps that row's own choice available. */
   function getAvailableCategories(excludeIdx?: number): string[] {
     const used = new Set(
       rows
@@ -65,6 +75,10 @@ export function renderGameForm(
     return input;
   }
 
+  /**
+   * Refreshes the totals row and gates the draw dropdown: enabled only on a
+   * non-zero tie, otherwise disabled and cleared so a stale choice isn't submitted.
+   */
   function updateTotals() {
     const totalWifey = rows.reduce((sum, row) => sum + (row.wifey || 0), 0);
     const totalHubby = rows.reduce((sum, row) => sum + (row.hubby || 0), 0);
@@ -90,6 +104,11 @@ export function renderGameForm(
     }
   }
 
+  /**
+   * Re-renders every category row plus the totals row into `container` and
+   * rebinds their listeners. Called after any structural change (add, remove,
+   * rename) because each row's dropdown options depend on the others.
+   */
   function renderRows(container: HTMLElement): void {
     let tabIndex: number = 1;
 
@@ -162,6 +181,7 @@ export function renderGameForm(
     updateAddButtonState();
   }
 
+  /** Disables "Add Category" once every registry category is in use. */
   function updateAddButtonState(): void {
     const addBtn = document.getElementById("add-row-btn") as HTMLButtonElement;
     if (addBtn) {
