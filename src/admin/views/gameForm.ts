@@ -79,7 +79,7 @@ export function renderGameForm(
    * Refreshes the totals row and gates the draw dropdown: enabled only on a
    * non-zero tie, otherwise disabled and cleared so a stale choice isn't submitted.
    */
-  function updateTotals() {
+  function updateTotals(): void {
     const totalWifey = rows.reduce((sum, row) => sum + (row.wifey || 0), 0);
     const totalHubby = rows.reduce((sum, row) => sum + (row.hubby || 0), 0);
 
