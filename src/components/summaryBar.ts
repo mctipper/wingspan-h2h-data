@@ -83,14 +83,6 @@ function simpleRow(rowLabel: string, cards: Card[], extraClass = ""): string {
   </div>`;
 }
 
-function recordsRow(rowLabel: string, cards: Card[]): string {
-  const labelHtml = rowLabel ? `<span class="summary-row__label">${rowLabel}</span>` : "";
-  return `<div class="summary-row summary-row--records">
-    ${labelHtml}
-    ${cards.map(cardHtml).join("")}
-  </div>`;
-}
-
 /** One wifey/hubby line: a coloured subheader beside (desktop) or above (mobile) its row. */
 function playerLine(player: "wifey" | "hubby" | null, row: string): string {
   // A null player renders an empty spacer so unlabelled rows stay column-aligned with labelled ones
@@ -135,14 +127,6 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
     pureDraws,
     currentStreak,
     runningHistory,
-    longestStreakWifey,
-    longestStreakHubby,
-    maxTotalWifey,
-    maxTotalHubby,
-    maxMarginWifey,
-    maxMarginHubby,
-    minWinningTotalWifey,
-    minWinningTotalHubby,
     avgMarginWifey,
     avgMarginHubby,
     maxScoreByCategory,
@@ -154,8 +138,8 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   const tbWifey = drawSummary.tiebreakerWins.wifey;
   const tbHubby = drawSummary.tiebreakerWins.hubby;
 
-  // ── Row 1: Current ──────────────────────────────────────
-  const row1 = simpleRow("Current", [
+  // ── Overall: headline counts, then wifey/hubby pairs per metric ──
+  const overallTopRow = simpleRow("", [
     { label: "Total Games", value: String(totalGames), modifier: "stat-card--neutral" },
     {
       label: "Wifey Wins",
@@ -170,59 +154,34 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
       modifier: "stat-card--hubby",
     },
     { label: "Pure Draws", value: String(pureDraws), modifier: "stat-card--neutral" },
-    {
-      label: "Perfects",
-      value: String(perfectGames.wifey + perfectGames.hubby),
-      sub: perfectGames.wifey > perfectGames.hubby ? `Wifey ${perfectGames.wifey}*` : perfectGames.hubby > perfectGames.wifey ? `Hubby ${perfectGames.hubby}*` : undefined,
-      modifier: "stat-card--neutral",
-      tooltip: "Games where a player won every single category",
-    },
   ], "summary-row--current");
 
-  // ── Records rows — 8 columns, tied values both get asterisk ─
-  const recordLabels = ["Max Score", "Max Margin", "Min Win Score", "Avg Score", "Avg Margin", "Best Streak", "Perfects"];
-
-  // For min-win: lower is better, so "best" means equal OR lower
-  const wifeyMaxScoreBest    = maxTotalWifey >= maxTotalHubby;
-  const hubbyMaxScoreBest    = maxTotalHubby >= maxTotalWifey;
-  const wifeyMaxMarginBest   = maxMarginWifey >= maxMarginHubby;
-  const hubbyMaxMarginBest   = maxMarginHubby >= maxMarginWifey;
-  const wifeyMinWinBest      = minWinningTotalWifey <= minWinningTotalHubby;
-  const hubbyMinWinBest      = minWinningTotalHubby <= minWinningTotalWifey;
-
+  // Tied values both earn the asterisk
   const avgOverallWifey = avgScoreByCategory[0]?.wifey ?? 0;
   const avgOverallHubby = avgScoreByCategory[0]?.hubby ?? 0;
-  const wifeyAvgScoreBest    = avgOverallWifey >= avgOverallHubby;
-  const hubbyAvgScoreBest    = avgOverallHubby >= avgOverallWifey;
-  const wifeyAvgMarginBest   = avgMarginWifey >= avgMarginHubby;
-  const hubbyAvgMarginBest   = avgMarginHubby >= avgMarginWifey;
-  const wifeyStreakBest      = longestStreakWifey.length >= longestStreakHubby.length;
-  const hubbyStreakBest      = longestStreakHubby.length >= longestStreakWifey.length;
-  const wifeyPerfectBest     = perfectGames.wifey >= perfectGames.hubby;
-  const hubbyPerfectBest     = perfectGames.hubby >= perfectGames.wifey;
+  const perfectsTooltip = "Games where a player won every single category";
 
-  const wifeyRecords: Card[] = [
-    { label: recordLabels[0], value: String(maxTotalWifey), modifier: "stat-card--wifey", best: wifeyMaxScoreBest, gameId: tally.maxTotalWifeyGameId },
-    { label: recordLabels[1], value: String(maxMarginWifey), modifier: "stat-card--wifey", best: wifeyMaxMarginBest, gameId: tally.maxMarginWifeyGameId },
-    { label: recordLabels[2], value: String(minWinningTotalWifey || "—"), modifier: "stat-card--wifey", best: wifeyMinWinBest, gameId: minWinningTotalWifey !== Infinity ? tally.minWinningTotalWifeyGameId : null },
-    { label: recordLabels[3], value: fmt2(avgOverallWifey), modifier: "stat-card--wifey", best: wifeyAvgScoreBest },
-    { label: recordLabels[4], value: fmt2(avgMarginWifey), modifier: "stat-card--wifey", best: wifeyAvgMarginBest },
-    { label: recordLabels[5], value: streakLabel(longestStreakWifey.length), modifier: "stat-card--wifey", best: wifeyStreakBest, gameId: tally.longestStreakWifeyLastGameId },
-    { label: recordLabels[6], value: String(perfectGames.wifey), modifier: "stat-card--wifey", best: wifeyPerfectBest },
+  /** One metric as a wifey card followed by a hubby card, so a 2-column grid yields one row per metric. */
+  const playerPair = (
+    label: string,
+    wifeyValue: string,
+    hubbyValue: string,
+    wifeyBest: boolean,
+    hubbyBest: boolean,
+    tooltip?: string,
+  ): Card[] => [
+    { label, value: wifeyValue, sub: "Wifey", modifier: "stat-card--wifey", best: wifeyBest, tooltip },
+    { label, value: hubbyValue, sub: "Hubby", modifier: "stat-card--hubby", best: hubbyBest, tooltip },
   ];
 
-  const hubbyRecords: Card[] = [
-    { label: recordLabels[0], value: String(maxTotalHubby), modifier: "stat-card--hubby", best: hubbyMaxScoreBest, gameId: tally.maxTotalHubbyGameId },
-    { label: recordLabels[1], value: String(maxMarginHubby), modifier: "stat-card--hubby", best: hubbyMaxMarginBest, gameId: tally.maxMarginHubbyGameId },
-    { label: recordLabels[2], value: String(minWinningTotalHubby || "—"), modifier: "stat-card--hubby", best: hubbyMinWinBest, gameId: minWinningTotalHubby !== Infinity ? tally.minWinningTotalHubbyGameId : null },
-    { label: recordLabels[3], value: fmt2(avgOverallHubby), modifier: "stat-card--hubby", best: hubbyAvgScoreBest },
-    { label: recordLabels[4], value: fmt2(avgMarginHubby), modifier: "stat-card--hubby", best: hubbyAvgMarginBest },
-    { label: recordLabels[5], value: streakLabel(longestStreakHubby.length), modifier: "stat-card--hubby", best: hubbyStreakBest, gameId: tally.longestStreakHubbyLastGameId },
-    { label: recordLabels[6], value: String(perfectGames.hubby), modifier: "stat-card--hubby", best: hubbyPerfectBest },
-  ];
-
-  const recordsWifeyRow = recordsRow("", wifeyRecords);
-  const recordsHubbyRow = recordsRow("", hubbyRecords);
+  const overallPairsRow = simpleRow("", [
+    ...playerPair("Avg Score", fmt2(avgOverallWifey), fmt2(avgOverallHubby),
+      avgOverallWifey >= avgOverallHubby, avgOverallHubby >= avgOverallWifey),
+    ...playerPair("Avg Margin", fmt2(avgMarginWifey), fmt2(avgMarginHubby),
+      avgMarginWifey >= avgMarginHubby, avgMarginHubby >= avgMarginWifey),
+    ...playerPair("Perfects", String(perfectGames.wifey), String(perfectGames.hubby),
+      perfectGames.wifey >= perfectGames.hubby, perfectGames.hubby >= perfectGames.wifey, perfectsTooltip),
+  ], "summary-row--overall-pairs");
 
   // ── Category rows — avg as main value, max as subtext ────
   const catStats = maxScoreByCategory.slice(1);
@@ -316,9 +275,7 @@ export function renderSummaryBar(tally: Tally, el: HTMLElement): void {
   const globalsHubbyRow = simpleRow("", maxCards("hubby"), "summary-row--globals");
 
   el.innerHTML =
-    row1 +
-    `<div class="summary-section-gap"></div>` +
-    pairedRows("Game Stats", recordsWifeyRow, recordsHubbyRow, "", true) +
+    pairedRows("Overall", overallTopRow, overallPairsRow, "summary-paired--overall") +
     `<div class="summary-section-gap"></div>` +
     pairedRows("Categories", catWifeyRow, catHubbyRow, "", true) +
     `<div class="summary-section-gap"></div>` +

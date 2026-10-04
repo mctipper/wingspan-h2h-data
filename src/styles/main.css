@@ -193,10 +193,10 @@ main {
   color: var(--colour-hubby);
 }
 
-/* Records rows — no label column, sits inside .summary-paired */
-.summary-row--records {
+/* Overall pairs — avg score / avg margin / perfects as wifey+hubby pairs, six across */
+.summary-row--overall-pairs {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 0.75rem;
   align-items: stretch;
 }
@@ -603,10 +603,25 @@ tr.row--draw:hover             { background: var(--row-draw-hover); }
 
 /* Transpose: when summary bar can't fit full width, flip layout */
 @media (max-width: 900px) {
-  /* Current row stacks its cards vertically */
+  /* Overall top row: Total Games on its own line, then wins/draws three across */
   .summary-row--current {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+  }
+
+  .summary-row--current .stat-card:first-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Overall pairs: one metric per line, wifey left and hubby right */
+  .summary-row--overall-pairs {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.35rem;
+  }
+
+  .summary-paired--overall .summary-paired__rows {
+    grid-template-columns: 1fr;
   }
 
   .summary-row--current .stat-card {
@@ -637,9 +652,8 @@ tr.row--draw:hover             { background: var(--row-draw-hover); }
     padding: 0.5rem 0.4rem;
   }
 
-  /* Current and Categories rows stack vertically here, so their desktop "flex: 1 1 0" would
+  /* Categories rows stack vertically here, so their desktop "flex: 1 1 0" would
      collapse each card's height to its basis of 0; size to content instead */
-  .summary-row--current .stat-card,
   .summary-row--categories .stat-card {
     flex: 0 0 auto;
   }
@@ -705,13 +719,6 @@ tr.row--draw:hover             { background: var(--row-draw-hover); }
 
   .summary-paired__subhead--spacer {
     display: none;
-  }
-
-  /* Each records row becomes a single column of cards */
-  .summary-row--records {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
   }
 
   /* Globals on mobile: current spans the top as three cards; wifey and hubby sit side by side beneath, each a stack of their maxes */
